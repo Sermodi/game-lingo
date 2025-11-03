@@ -1,0 +1,101 @@
+[tool.poetry]
+name = "game-description-translator"
+version = "0.1.0"
+description = "Traductor de descripciones de videojuegos con soporte multi-plataforma"
+authors = ["Sermodi <sermodsoftware@gmail.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/sermodi/game-description-translator"
+repository = "https://github.com/sermodi/game-description-translator"
+keywords = ["games", "translation", "steam", "rawg", "deepl", "videogames", "api", "translator"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Games/Entertainment",
+    "Operating System :: OS Independent",
+]
+packages = [{include = "game_translator"}]
+
+[tool.poetry.scripts]
+game-translator = "game_translator.cli:main"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+requests = "^2.31.0"
+pydantic = "^2.5.0"
+python-decouple = "^3.8"
+tenacity = "^8.2.3"
+aiohttp = "^3.9.0"
+asyncio = "^3.4.3"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.4.0"
+pytest-asyncio = "^0.21.0"
+pytest-cov = "^4.1.0"
+black = "^23.0.0"
+ruff = "^0.1.0"
+bandit = "^1.7.5"
+mypy = "^1.7.0"
+types-requests = "^2.31.0"
+pre-commit = "^3.5.0"
+isort = "^5.13.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=game_translator --cov-report=term-missing --cov-report=html"
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["game_translator"]
+omit = ["*/tests/*", "*/test_*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
