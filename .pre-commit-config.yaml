@@ -1,0 +1,120 @@
+# Pre-commit hooks para Game Description Translator
+# Instalación: pip install pre-commit && pre-commit install
+# Ejecución manual: pre-commit run --all-files
+
+repos:
+  # Formateo de código con Black
+  - repo: https://github.com/psf/black
+    rev: 23.12.1
+    hooks:
+      - id: black
+        language_version: python3.9
+        args: [--line-length=88]
+
+  # Linting con Ruff (más rápido que flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+
+  # Type checking con mypy
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.7.1
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - types-requests
+          - pydantic
+        args: [--config-file=pyproject.toml]
+        exclude: ^tests/
+
+  # Security scanning con Bandit
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.6
+    hooks:
+      - id: bandit
+        args: [-r, game_translator/, -ll]
+        exclude: ^tests/
+
+  # Hooks básicos de pre-commit
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      # Prevenir commits a main/master
+      - id: no-commit-to-branch
+        args: [--branch, main, --branch, master]
+      
+      # Trailing whitespace
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      
+      # Final de archivo
+      - id: end-of-file-fixer
+      
+      # YAML válido
+      - id: check-yaml
+        args: [--safe]
+      
+      # TOML válido
+      - id: check-toml
+      
+      # JSON válido
+      - id: check-json
+      
+      # Merge conflicts
+      - id: check-merge-conflict
+      
+      # Archivos grandes (>500KB)
+      - id: check-added-large-files
+        args: [--maxkb=500]
+      
+      # Nombres de archivos
+      - id: check-case-conflict
+      
+      # Docstrings
+      - id: check-docstring-first
+      
+      # Python debug statements
+      - id: debug-statements
+      
+      # Private keys
+      - id: detect-private-key
+      
+      # Mixed line endings
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # Ordenar imports con isort
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: [--profile, black, --line-length, "88"]
+
+  # Verificar requirements.txt actualizado
+  - repo: https://github.com/python-poetry/poetry
+    rev: 1.7.0
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
+        args: [--no-update]
+
+# Configuración global
+default_language_version:
+  python: python3.9
+
+# Archivos a excluir
+exclude: |
+  (?x)^(
+    \.git/|
+    \.venv/|
+    __pycache__/|
+    \.pytest_cache/|
+    htmlcov/|
+    dist/|
+    build/|
+    \.eggs/|
+    cache/|
+    .*\.egg-info/
+  )$
