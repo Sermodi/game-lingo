@@ -58,17 +58,22 @@ class RAWGAPIConnector:
     Rate Limits: 20,000 requests/month (gratuita)
     """
     
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(
+        self, 
+        api_key: Optional[str] = None,
+        rate_limiter: Optional[RateLimiter] = None
+    ):
         """
         Inicializa el conector RAWG.
         
         Args:
             api_key: API key de RAWG (opcional, se puede obtener de config)
+            rate_limiter: Rate limiter para controlar uso de API (opcional)
         """
         self.api_key = api_key or settings.RAWG_API_KEY
         self.base_url = settings.RAWG_BASE_URL
         self.session: Optional[aiohttp.ClientSession] = None
-        self.rate_limiter = RateLimiter()
+        self.rate_limiter = rate_limiter
         
         if not self.api_key:
             raise AuthenticationError(
@@ -135,7 +140,8 @@ class RAWGAPIConnector:
             raise ValidationError("Limit must be between 1 and 40")
         
         # Aplicar rate limiting
-        await self.rate_limiter.acquire("rawg")
+        if self.rate_limiter:
+            await self.rate_limiter.wait_if_needed("rawg")
         
         # Preparar parámetros
         params = {
@@ -198,7 +204,8 @@ class RAWGAPIConnector:
             raise ValidationError("Game ID must be a positive integer")
         
         # Aplicar rate limiting
-        await self.rate_limiter.acquire("rawg")
+        if self.rate_limiter:
+            await self.rate_limiter.wait_if_needed("rawg")
         
         params = {'key': self.api_key}
         url = f"{self.base_url}/games/{game_id}"
