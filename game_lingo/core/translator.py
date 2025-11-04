@@ -153,7 +153,7 @@ class GameDescriptionTranslator:
                     short_description_en=english_description,
                 )
                 # Procesar traducción directamente
-                await self._process_translation(game_info, result)
+                await self._process_translation(game_info, result, target_lang)
                 result.game_info = game_info
                 result.success = True
                 result.processing_time_ms = int((time.time() - start_time) * 1000)
@@ -180,7 +180,7 @@ class GameDescriptionTranslator:
                 )
 
             # Procesar traducción si es necesario
-            await self._process_translation(game_info, result)
+            await self._process_translation(game_info, result, target_lang)
 
             # Actualizar resultado
             result.game_info = game_info
@@ -266,33 +266,32 @@ class GameDescriptionTranslator:
         return game_info
 
     async def _process_translation(
-        self, game_info: GameInfo, result: TranslationResult,
+        self, game_info: GameInfo, result: TranslationResult, target_lang: Language,
     ) -> None:
         """Procesa la traducción si es necesaria."""
-        if game_info.has_spanish_description():
-            # Ya tiene descripción en español
+        # Verificar si ya tiene descripción en el idioma destino
+        if game_info.has_description(target_lang):
+            # Ya tiene descripción nativa en el idioma destino
             result.source = TranslationSource.NATIVE
             result.confidence = 1.0
             return
 
-        # Necesita traducción
+        # Necesita traducción desde inglés
         english_description = game_info.get_best_description_en()
         if not english_description:
             result.add_warning("No English description available for translation")
             return
 
-        # Intentar traducción
+        # Intentar traducción al idioma destino
         translated_text, provider, confidence = await self._translate_text(
             english_description,
+            target_lang,
             result,
         )
 
         if translated_text:
-            # Actualizar con traducción
-            if game_info.detailed_description_en and not game_info.short_description_en:
-                game_info.detailed_description_es = translated_text
-            else:
-                game_info.short_description_es = translated_text
+            # Guardar traducción usando el método helper
+            game_info.set_description(target_lang, translated_text)
 
             game_info.translation_source = TranslationSource(provider)
             game_info.translation_confidence = confidence
@@ -301,12 +300,13 @@ class GameDescriptionTranslator:
             result.confidence = confidence
 
             logger.info(
-                f"Translated description using {provider} (confidence: {confidence})",
+                f"Translated description to {target_lang.value} using {provider} (confidence: {confidence})",
             )
 
     async def _translate_text(
         self,
         text: str,
+        target_lang: Language,
         result: TranslationResult,
     ) -> tuple[str | None, str, float]:
         """
@@ -314,19 +314,27 @@ class GameDescriptionTranslator:
 
         Las APIs de traducción son síncronas, así que las ejecutamos en un thread.
 
+        Args:
+            text: Texto a traducir (siempre en inglés)
+            target_lang: Idioma destino
+            result: Objeto resultado para tracking
+
         Returns:
             Tuple de (texto_traducido, proveedor_usado, confianza)
         """
         providers = self._get_translation_providers()
+        target_code = target_lang.value
 
         for provider_name in providers:
             try:
                 if provider_name == "deepl" and self.deepl_api:
+                    # DeepL usa códigos en mayúsculas (ES, FR, DE, etc.)
+                    deepl_target = target_code.upper()
                     # DeepL API es síncrona, ejecutar en thread
                     translation_result = await asyncio.to_thread(
                         self.deepl_api.translate_text,
                         text=text,
-                        target_language="ES",
+                        target_language=deepl_target,
                         source_language="EN",
                     )
                     result.add_api_used("deepl")
@@ -334,11 +342,12 @@ class GameDescriptionTranslator:
                     return translation_result.text, "deepl", confidence
 
                 if provider_name == "google" and self.google_api:
+                    # Google usa códigos en minúsculas (es, fr, de, etc.)
                     # Google Translate API es síncrona, ejecutar en thread
                     translation_result = await asyncio.to_thread(
                         self.google_api.translate_text,
                         text=text,
-                        target_language="es",
+                        target_language=target_code,
                         source_language="en",
                     )
                     result.add_api_used("google")
