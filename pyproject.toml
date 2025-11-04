@@ -57,7 +57,24 @@ target-version = ['py39']
 [tool.ruff]
 line-length = 88
 target-version = "py39"
+
+[tool.ruff.lint]
 select = ["E", "F", "W", "C90", "I", "N", "UP", "YTT", "S", "BLE", "FBT", "B", "A", "COM", "C4", "DTZ", "T10", "EM", "EXE", "FA", "ISC", "ICN", "G", "INP", "PIE", "T20", "PYI", "PT", "Q", "RSE", "RET", "SLF", "SLOT", "SIM", "TID", "TCH", "INT", "ARG", "PTH", "TD", "FIX", "ERA", "PD", "PGH", "PL", "TRY", "FLY", "NPY", "AIR", "PERF", "FURB", "LOG", "RUF"]
+ignore = [
+    "T201",    # print statements (intencional en CLI)
+    "G004",    # f-strings en logging (preferencia de legibilidad)
+    "TID252",  # imports relativos (estructura del paquete)
+    "EM101",   # strings literales en excepciones (OK para mensajes simples)
+    "EM102",   # f-strings en excepciones (OK para contexto dinámico)
+    "TRY003",  # mensajes largos en excepciones (preferencia de claridad)
+    "S110",    # try-except-pass (usado intencionalmente en algunos casos)
+    "PLR2004", # magic values (algunos son obvios en contexto)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"game_translator/cli.py" = ["T201"]
+"tests/**/*.py" = ["PLR0913", "PLR0915", "S101"]
+"**/__init__.py" = ["F401"]
 
 [tool.mypy]
 python_version = "3.9"
@@ -73,6 +90,25 @@ warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
 strict_equality = true
+# Plugins para Pydantic
+plugins = ["pydantic.mypy"]
+
+[tool.pydantic-mypy]
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+
+# Configuración por módulo
+[[tool.mypy.overrides]]
+module = "game_translator.models.*"
+# Pydantic genera constructores dinámicamente, ignorar algunos errores
+disable_error_code = ["call-arg", "misc"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+# Tests pueden ser menos estrictos
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
