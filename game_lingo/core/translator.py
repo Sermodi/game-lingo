@@ -204,6 +204,7 @@ class GameDescriptionTranslator:
         self,
         english_description: str,
         game_name: str | None = None,
+        target_lang: Language | str = Language.SPANISH,
     ) -> TranslationResult:
         """
         Traduce una descripción en inglés directamente, sin buscar el juego.
@@ -211,6 +212,7 @@ class GameDescriptionTranslator:
         Args:
             english_description: Descripción en inglés a traducir
             game_name: Nombre del juego (opcional, para referencia)
+            target_lang: Idioma destino para la traducción (default: Spanish)
 
         Returns:
             TranslationResult con la traducción
@@ -221,6 +223,7 @@ class GameDescriptionTranslator:
         return await self.translate_game_description(
             game_identifier=game_name or "Unknown Game",
             english_description=english_description,
+            target_lang=target_lang,
             force_refresh=True,
         )
 
