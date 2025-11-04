@@ -89,14 +89,14 @@ class Cache:
                 # Índices para optimizar consultas
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_expires_at 
+                    CREATE INDEX IF NOT EXISTS idx_expires_at
                     ON cache_entries(expires_at)
                 """,
                 )
 
                 conn.execute(
                     """
-                    CREATE INDEX IF NOT EXISTS idx_last_accessed 
+                    CREATE INDEX IF NOT EXISTS idx_last_accessed
                     ON cache_entries(last_accessed)
                 """,
                 )
@@ -105,7 +105,7 @@ class Cache:
 
         except sqlite3.Error as e:
             raise CacheError(
-                f"Failed to initialize cache database: {e}", operation="initialize"
+                f"Failed to initialize cache database: {e}", operation="initialize",
             )
 
     async def get(self, key: str) -> TranslationResult | None:
@@ -147,7 +147,7 @@ class Cache:
                 cursor = conn.execute(
                     """
                     SELECT value, expires_at, compressed, access_count
-                    FROM cache_entries 
+                    FROM cache_entries
                     WHERE key = ? AND expires_at > ?
                 """,
                     (key, time.time()),
@@ -162,7 +162,7 @@ class Cache:
                 # Actualizar estadísticas de acceso
                 conn.execute(
                     """
-                    UPDATE cache_entries 
+                    UPDATE cache_entries
                     SET access_count = ?, last_accessed = ?
                     WHERE key = ?
                 """,
@@ -246,8 +246,8 @@ class Cache:
             with sqlite3.connect(self.db_path) as conn:
                 conn.execute(
                     """
-                    INSERT OR REPLACE INTO cache_entries 
-                    (key, value, created_at, expires_at, last_accessed, 
+                    INSERT OR REPLACE INTO cache_entries
+                    (key, value, created_at, expires_at, last_accessed,
                      compressed, size_bytes, access_count)
                     VALUES (?, ?, ?, ?, ?, ?, ?, 0)
                 """,
