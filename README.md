@@ -132,8 +132,19 @@ game-translator describe "Celeste" "A challenging platformer about climbing a mo
 # Información detallada de un juego
 game-translator info "Stardew Valley"
 
-# Ver estadísticas de uso de APIs y costos
-game-translator stats
+### Ver estadísticas de uso
+
+```bash
+python -m game_translator stats
+```
+
+Muestra estadísticas detalladas de uso de APIs en tiempo real, incluyendo:
+- **Requests realizados y disponibles** por cada API (ventanas deslizantes)
+- **Caracteres traducidos** y cuota restante
+- **Proyecciones de costos** basadas en uso actual
+- **Recomendaciones** para optimizar el uso de APIs
+
+**Nota**: Desde v0.2.0, todas las APIs están integradas con el rate limiter para tracking preciso de uso y costos.
 
 # Ver ayuda
 game-translator --help

@@ -69,12 +69,12 @@ class GameDescriptionTranslator:
     def _init_apis(self) -> None:
         """Inicializa las APIs disponibles."""
         # Steam API siempre disponible (no requiere API key)
-        self.steam_api = SteamAPI() if SteamAPI else None
+        self.steam_api = SteamAPI(rate_limiter=self.rate_limiter) if SteamAPI else None
         # RAWG API requiere API key - usar RAWGAPIConnector directamente
-        self.rawg_api = RAWGAPIConnector() if (RAWGAPIConnector and settings.is_api_configured("rawg")) else None
+        self.rawg_api = RAWGAPIConnector(rate_limiter=self.rate_limiter) if (RAWGAPIConnector and settings.is_api_configured("rawg")) else None
         # APIs de traducción requieren API keys
-        self.deepl_api = DeepLAPI(api_key=settings.DEEPL_API_KEY) if (DeepLAPI and settings.is_api_configured("deepl")) else None
-        self.google_api = GoogleTranslateAPI(api_key=settings.GOOGLE_TRANSLATE_API_KEY) if (GoogleTranslateAPI and settings.is_api_configured("google")) else None
+        self.deepl_api = DeepLAPI(api_key=settings.DEEPL_API_KEY, rate_limiter=self.rate_limiter) if (DeepLAPI and settings.is_api_configured("deepl")) else None
+        self.google_api = GoogleTranslateAPI(api_key=settings.GOOGLE_TRANSLATE_API_KEY, rate_limiter=self.rate_limiter) if (GoogleTranslateAPI and settings.is_api_configured("google")) else None
     
     async def translate_game_description(
         self,
@@ -394,7 +394,7 @@ class GameDescriptionTranslator:
         
         try:
             # Steam API siempre está disponible (no requiere API key)
-            async with SteamAPI() as steam:
+            async with SteamAPI(rate_limiter=self.rate_limiter) as steam:
                 result.add_api_used("steam")
                 game_info = await steam.find_game_by_name(game_identifier, language="spanish")
                 if game_info:

@@ -7,6 +7,7 @@ para traducir descripciones de juegos a diferentes idiomas.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import Dict, List, Optional, Any, Union
@@ -17,6 +18,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..config import settings
+from ..core.rate_limiter import RateLimiter
 from ..exceptions import (
     APIError,
     RateLimitError,
@@ -89,7 +91,8 @@ class GoogleTranslateAPIConnector:
         self,
         api_key: Optional[str] = None,
         timeout: int = None,
-        requests_per_second: Optional[int] = None
+        requests_per_second: Optional[int] = None,
+        rate_limiter: Optional[RateLimiter] = None
     ):
         """
         Inicializa el conector Google Translate API.
@@ -97,11 +100,13 @@ class GoogleTranslateAPIConnector:
         Args:
             api_key: Clave de API de Google Cloud. Si no se proporciona, se usa la configuración.
             timeout: Timeout para las peticiones HTTP en segundos.
+            rate_limiter: Rate limiter para controlar uso de API (opcional)
         """
         self.api_key = api_key or settings.GOOGLE_TRANSLATE_API_KEY
         self.timeout = timeout or settings.TRANSLATION_TIMEOUT_SECONDS
         # allow tests to pass a custom rate
         self.requests_per_second = requests_per_second or settings.GOOGLE_TRANSLATE_REQUESTS_PER_SECOND
+        self.rate_limiter = rate_limiter
 
         if not self.api_key:
             raise AuthenticationError(
@@ -434,6 +439,20 @@ class GoogleTranslateAPIConnector:
             data['source'] = source_language
         
         try:
+            # Rate limiting (llamada síncrona a método async)
+            if self.rate_limiter:
+                # Usar asyncio.run para ejecutar el rate limiter async desde código síncrono
+                try:
+                    asyncio.run(
+                        self.rate_limiter.wait_if_needed("google", character_count=len(text))
+                    )
+                except RuntimeError:
+                    # Si ya hay un event loop corriendo, intentar usarlo
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete(
+                        self.rate_limiter.wait_if_needed("google", character_count=len(text))
+                    )
+            
             logger.info(f"Translating text to {target_language} (length: {len(text)})")
             response = self._make_request("", data=data)  # Endpoint vacío para translate
             result_data = response.json()

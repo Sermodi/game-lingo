@@ -7,6 +7,7 @@ para traducir descripciones de juegos a diferentes idiomas.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import time
 from typing import Dict, List, Optional, Any
@@ -17,6 +18,7 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..config import settings
+from ..core.rate_limiter import RateLimiter
 from ..exceptions import (
     APIError,
     RateLimitError,
@@ -71,7 +73,8 @@ class DeepLAPIConnector:
         self,
         api_key: Optional[str] = None,
         is_pro: bool = False,
-        timeout: int = None
+        timeout: int = None,
+        rate_limiter: Optional[RateLimiter] = None
     ):
         """
         Inicializa el conector DeepL API.
@@ -80,10 +83,12 @@ class DeepLAPIConnector:
             api_key: Clave de API de DeepL. Si no se proporciona, se usa la configuración.
             is_pro: Si True, usa la API Pro de DeepL. Si False, usa la API Free.
             timeout: Timeout para las peticiones HTTP en segundos.
+            rate_limiter: Rate limiter para controlar uso de API (opcional)
         """
         self.api_key = api_key or settings.DEEPL_API_KEY
         self.is_pro = is_pro or settings.DEEPL_IS_PRO
         self.timeout = timeout or settings.TRANSLATION_TIMEOUT_SECONDS
+        self.rate_limiter = rate_limiter
         
         if not self.api_key:
             raise AuthenticationError(
@@ -413,6 +418,20 @@ class DeepLAPIConnector:
             data['preserve_formatting'] = '1'
         
         try:
+            # Rate limiting (llamada síncrona a método async)
+            if self.rate_limiter:
+                # Usar asyncio.run para ejecutar el rate limiter async desde código síncrono
+                try:
+                    asyncio.run(
+                        self.rate_limiter.wait_if_needed("deepl", character_count=len(text))
+                    )
+                except RuntimeError:
+                    # Si ya hay un event loop corriendo, intentar usarlo
+                    loop = asyncio.get_event_loop()
+                    loop.run_until_complete(
+                        self.rate_limiter.wait_if_needed("deepl", character_count=len(text))
+                    )
+            
             logger.info(f"Translating text to {target_language} (length: {len(text)})")
             response = self._make_request("translate", data=data)
             result_data = response.json()
