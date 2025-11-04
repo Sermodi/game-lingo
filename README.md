@@ -1,6 +1,8 @@
-# Game Description Translator
+# GameLingo
 
-Traductor inteligente de descripciones de videojuegos con estrategia híbrida multi-API para máxima cobertura y calidad.
+> Multi-language video game description translator with smart API orchestration
+
+Intelligent game description translation system using a 3-tier hybrid strategy to get the best translations possible in any language.
 
 ## 🎯 Estrategia Híbrida
 
@@ -108,29 +110,29 @@ LOG_FILE=logs/translator.log
 
 ### CLI (Línea de Comandos)
 
-Después de instalar el paquete, puedes usar el comando `game-translator`:
+Después de instalar el paquete, puedes usar el comando `game-lingo`:
 
 ```bash
 # Buscar un juego y obtener su descripción en español
-game-translator search "Hollow Knight"
+game-lingo search "Hollow Knight"
 
 # Buscar en una plataforma específica
-game-translator search "Celeste" --platform steam
+game-lingo search "Celeste" --platform steam
 
 # Mostrar descripción completa
-game-translator search "Hades" --full
+game-lingo search "Hades" --full
 
 # Traducir un texto directamente
-game-translator translate "An epic adventure in a vast world"
+game-lingo translate "An epic adventure in a vast world"
 
 # Traducir especificando idiomas
-game-translator translate "Bonjour le monde" --source fr --target es
+game-lingo translate "Bonjour le monde" --source fr --target es
 
 # Buscar con descripción proporcionada (usa nativa si existe, sino traduce)
-game-translator describe "Celeste" "A challenging platformer about climbing a mountain"
+game-lingo describe "Celeste" "A challenging platformer about climbing a mountain"
 
 # Información detallada de un juego
-game-translator info "Stardew Valley"
+game-lingo info "Stardew Valley"
 
 ### Ver estadísticas de uso
 
@@ -147,8 +149,8 @@ Muestra estadísticas detalladas de uso de APIs en tiempo real, incluyendo:
 **Nota**: Desde v0.2.0, todas las APIs están integradas con el rate limiter para tracking preciso de uso y costos.
 
 # Ver ayuda
-game-translator --help
-game-translator search --help
+game-lingo --help
+game-lingo search --help
 ```
 
 #### Ejecutar sin instalar (desarrollo)

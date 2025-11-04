@@ -28,11 +28,11 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 
 ### Added
 - **CLI (Command Line Interface)** para uso desde terminal
-  - Comando `game-translator search` para buscar juegos
-  - Comando `game-translator translate` para traducción directa
-  - Comando `game-translator describe` para buscar con descripción proporcionada (usa nativa si existe, sino traduce)
-  - Comando `game-translator info` para información detallada
-  - Comando `game-translator stats` para ver estadísticas de uso de APIs y costos estimados
+  - Comando `game-lingo search` para buscar juegos
+  - Comando `game-lingo translate` para traducción directa
+  - Comando `game-lingo describe` para buscar con descripción proporcionada (usa nativa si existe, sino traduce)
+  - Comando `game-lingo info` para información detallada
+  - Comando `game-lingo stats` para ver estadísticas de uso de APIs y costos estimados
   - Soporte para ejecución con `python -m game_translator`
   - Ayuda integrada con `--help`
   - Salida formateada y coloreada

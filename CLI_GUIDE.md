@@ -16,7 +16,7 @@ pip install -e .
 
 ```bash
 # Buscar un juego
-game-translator search "Hollow Knight"
+game-lingo search "Hollow Knight"
 ```
 
 ## 📋 Comandos Disponibles
@@ -27,16 +27,16 @@ Busca un juego y obtiene su descripción en español.
 
 ```bash
 # Uso básico
-game-translator search "Celeste"
+game-lingo search "Celeste"
 
 # Con plataforma específica
-game-translator search "Mario Kart" --platform nintendo_switch
+game-lingo search "Mario Kart" --platform nintendo_switch
 
 # Mostrar descripción completa
-game-translator search "Hades" --full
+game-lingo search "Hades" --full
 
 # Con información de depuración
-game-translator search "Terraria" --verbose
+game-lingo search "Terraria" --verbose
 ```
 
 **Opciones:**
@@ -74,13 +74,13 @@ Traduce un texto directamente sin buscar un juego.
 
 ```bash
 # Traducción básica (inglés → español)
-game-translator translate "An epic adventure in a vast world"
+game-lingo translate "An epic adventure in a vast world"
 
 # Especificar idiomas
-game-translator translate "Bonjour le monde" --source fr --target es
+game-lingo translate "Bonjour le monde" --source fr --target es
 
 # Elegir proveedor de traducción
-game-translator translate "Hello world" --provider deepl
+game-lingo translate "Hello world" --provider deepl
 ```
 
 **Opciones:**
@@ -110,10 +110,10 @@ Busca un juego proporcionando su nombre Y descripción en inglés. Si el juego t
 
 ```bash
 # Buscar con descripción (usa nativa si existe, sino traduce)
-game-translator describe "Celeste" "A challenging platformer about climbing a mountain"
+game-lingo describe "Celeste" "A challenging platformer about climbing a mountain"
 
 # Con descripción completa
-game-translator describe "Indie Game" "An epic adventure in a vast fantasy world" --full
+game-lingo describe "Indie Game" "An epic adventure in a vast fantasy world" --full
 ```
 
 **Opciones:**
@@ -163,7 +163,7 @@ Obtiene información completa de un juego.
 
 ```bash
 # Información detallada
-game-translator info "Stardew Valley"
+game-lingo info "Stardew Valley"
 ```
 
 **Opciones:**
@@ -177,10 +177,10 @@ Muestra estadísticas de uso de las APIs y costos estimados.
 
 ```bash
 # Ver estadísticas
-game-translator stats
+game-lingo stats
 
 # Ver estadísticas y resetear (próximamente)
-game-translator stats --reset
+game-lingo stats --reset
 ```
 
 **Opciones:**
@@ -252,46 +252,46 @@ game-translator stats --reset
 ### Buscar juegos populares
 
 ```bash
-game-translator search "The Witcher 3"
-game-translator search "Cyberpunk 2077"
-game-translator search "Elden Ring"
-game-translator search "Baldur's Gate 3"
+game-lingo search "The Witcher 3"
+game-lingo search "Cyberpunk 2077"
+game-lingo search "Elden Ring"
+game-lingo search "Baldur's Gate 3"
 ```
 
 ### Buscar por plataforma
 
 ```bash
 # Juegos de Steam
-game-translator search "Portal 2" --platform steam
+game-lingo search "Portal 2" --platform steam
 
 # Juegos de PlayStation
-game-translator search "God of War" --platform playstation
+game-lingo search "God of War" --platform playstation
 
 # Juegos de Nintendo Switch
-game-translator search "Zelda" --platform nintendo_switch
+game-lingo search "Zelda" --platform nintendo_switch
 ```
 
 ### Traducir descripciones personalizadas
 
 ```bash
 # Inglés a español
-game-translator translate "Explore dungeons and defeat monsters"
+game-lingo translate "Explore dungeons and defeat monsters"
 
 # Francés a español
-game-translator translate "Explorez un monde fantastique" --source fr
+game-lingo translate "Explorez un monde fantastique" --source fr
 
 # Alemán a español
-game-translator translate "Ein episches Abenteuer" --source de
+game-lingo translate "Ein episches Abenteuer" --source de
 ```
 
 ### Modo verbose (depuración)
 
 ```bash
 # Ver logs detallados
-game-translator search "Minecraft" --verbose
+game-lingo search "Minecraft" --verbose
 
 # Útil para diagnosticar problemas
-game-translator translate "Test" --verbose
+game-lingo translate "Test" --verbose
 ```
 
 ## 🔧 Desarrollo
@@ -313,7 +313,7 @@ python game_translator/cli.py search "Minecraft"
 pip install -e .
 
 # Ahora los cambios se reflejan inmediatamente
-game-translator search "Test"
+game-lingo search "Test"
 ```
 
 ## ⚙️ Configuración
@@ -337,21 +337,21 @@ LOG_LEVEL=INFO
 ### Ver ayuda general
 
 ```bash
-game-translator --help
+game-lingo --help
 ```
 
 ### Ver ayuda de un comando específico
 
 ```bash
-game-translator search --help
-game-translator translate --help
-game-translator info --help
+game-lingo search --help
+game-lingo translate --help
+game-lingo info --help
 ```
 
 ### Ver versión
 
 ```bash
-game-translator --version
+game-lingo --version
 ```
 
 ## 🐛 Solución de Problemas
@@ -380,18 +380,18 @@ export RAWG_API_KEY=tu_key
 
 ```bash
 # Intenta con otro nombre o sin plataforma
-game-translator search "Nombre alternativo"
+game-lingo search "Nombre alternativo"
 
 # Usa --verbose para ver más detalles
-game-translator search "Juego" --verbose
+game-lingo search "Juego" --verbose
 ```
 
 ### Modo verbose no funciona
 
 ```bash
 # Asegúrate de usar -v ANTES del comando
-game-translator -v search "Test"  # ✓ Correcto
-game-translator search "Test" -v  # ✗ Incorrecto
+game-lingo -v search "Test"  # ✓ Correcto
+game-lingo search "Test" -v  # ✗ Incorrecto
 ```
 
 ## 📚 Recursos
@@ -413,18 +413,18 @@ game-translator search "Test" -v  # ✗ Incorrecto
 
 ```bash
 # Indie populares
-game-translator search "Celeste"
-game-translator search "Hollow Knight"
-game-translator search "Hades"
-game-translator search "Stardew Valley"
+game-lingo search "Celeste"
+game-lingo search "Hollow Knight"
+game-lingo search "Hades"
+game-lingo search "Stardew Valley"
 
 # AAA recientes
-game-translator search "Elden Ring"
-game-translator search "Baldur's Gate 3"
-game-translator search "Cyberpunk 2077"
+game-lingo search "Elden Ring"
+game-lingo search "Baldur's Gate 3"
+game-lingo search "Cyberpunk 2077"
 
 # Clásicos
-game-translator search "Portal 2"
-game-translator search "The Witcher 3"
-game-translator search "Skyrim"
+game-lingo search "Portal 2"
+game-lingo search "The Witcher 3"
+game-lingo search "Skyrim"
 ```

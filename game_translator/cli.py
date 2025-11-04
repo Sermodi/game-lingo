@@ -1,5 +1,5 @@
 """
-CLI (Command Line Interface) para Game Description Translator.
+CLI (Command Line Interface) para GameLingo.
 
 Permite usar el traductor desde la línea de comandos de forma interactiva.
 """
@@ -39,9 +39,9 @@ logger = logging.getLogger(__name__)
 def setup_argparse() -> argparse.ArgumentParser:
     """Configura el parser de argumentos de línea de comandos."""
     parser = argparse.ArgumentParser(
-        prog="game-translator",
-        description="Traductor inteligente de descripciones de videojuegos",
-        epilog='Ejemplo: game-translator search "Hollow Knight"',
+        prog="game-lingo",
+        description="Multi-language video game description translator",
+        epilog='Ejemplo: game-lingo search "Hollow Knight"',
     )
 
     parser.add_argument(
@@ -687,33 +687,33 @@ def show_help() -> None:
     """Muestra ayuda cuando no se especifica comando."""
     print(
         """
-Game Description Translator - CLI
-==================================
+GameLingo - CLI
+===============
 
 Uso:
-  game-translator <comando> [opciones]
+  game-lingo <comando> [opciones]
 
 Comandos disponibles:
-  search <juego>              Buscar un juego y obtener descripción en español
+  search <juego>              Buscar un juego y obtener descripción
   translate <texto>           Traducir un texto directamente
-  describe <juego> <desc>     Buscar juego con descripción (usa nativa o traduce)
+  describe <juego> <desc>     Buscar con descripción proporcionada
   info <juego>                Información detallada de un juego
   stats                       Mostrar estadísticas de uso de APIs y costos
 
 Ejemplos:
-  game-translator search "Hollow Knight"
-  game-translator search "Celeste" --platform steam
-  game-translator translate "An epic adventure" --source en --target es
-  game-translator describe "Indie Game" "A challenging platformer with pixel art"
-  game-translator info "Hades"
-  game-translator stats
+  game-lingo search "Hollow Knight"
+  game-lingo search "Celeste" --platform steam
+  game-lingo translate "An epic adventure" --source en --target es
+  game-lingo describe "Indie Game" "A challenging platformer with pixel art"
+  game-lingo info "Hades"
+  game-lingo stats
 
 Para más ayuda:
-  game-translator --help
-  game-translator search --help
-  game-translator translate --help
-  game-translator describe --help
-  game-translator stats --help
+  game-lingo --help
+  game-lingo search --help
+  game-lingo translate --help
+  game-lingo describe --help
+  game-lingo stats --help
 """,
     )
 

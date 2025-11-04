@@ -1,13 +1,13 @@
 [tool.poetry]
-name = "game-description-translator"
+name = "game-lingo"
 version = "0.2.0"
-description = "Traductor de descripciones de videojuegos con soporte multi-plataforma"
+description = "Multi-language video game description translator with smart API orchestration"
 authors = ["Sermodi <sermodsoftware@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/sermodi/game-description-translator"
-repository = "https://github.com/sermodi/game-description-translator"
-keywords = ["games", "translation", "steam", "rawg", "deepl", "videogames", "api", "translator"]
+homepage = "https://github.com/sermodi/game-lingo"
+repository = "https://github.com/sermodi/game-lingo"
+keywords = ["games", "translation", "steam", "rawg", "deepl", "videogames", "api", "multilingual", "i18n", "localization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -23,7 +23,7 @@ classifiers = [
 packages = [{include = "game_translator"}]
 
 [tool.poetry.scripts]
-game-translator = "game_translator.cli:main"
+game-lingo = "game_translator.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
