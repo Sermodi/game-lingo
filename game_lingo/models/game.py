@@ -57,6 +57,94 @@ class Platform(str, Enum):
         return platform_map.get(normalized, cls.PC)
 
 
+class Language(str, Enum):
+    """Idiomas soportados para traducción."""
+
+    # Idiomas principales
+    SPANISH = "es"
+    ENGLISH = "en"
+    FRENCH = "fr"
+    GERMAN = "de"
+    ITALIAN = "it"
+    PORTUGUESE = "pt"
+    RUSSIAN = "ru"
+    JAPANESE = "ja"
+    KOREAN = "ko"
+    CHINESE_SIMPLIFIED = "zh"
+    CHINESE_TRADITIONAL = "zh-TW"
+    DUTCH = "nl"
+    POLISH = "pl"
+    SWEDISH = "sv"
+    DANISH = "da"
+    FINNISH = "fi"
+    NORWEGIAN = "no"
+    CZECH = "cs"
+    TURKISH = "tr"
+    GREEK = "el"
+    HUNGARIAN = "hu"
+    ROMANIAN = "ro"
+    BULGARIAN = "bg"
+    UKRAINIAN = "uk"
+    ARABIC = "ar"
+    HINDI = "hi"
+    THAI = "th"
+    VIETNAMESE = "vi"
+    INDONESIAN = "id"
+
+    @classmethod
+    def from_string(cls, lang_str: str) -> Language:
+        """Convierte string a Language, con normalización."""
+        normalized = lang_str.lower().strip()
+        
+        # Mapeo de códigos comunes
+        lang_map = {
+            "es": cls.SPANISH,
+            "spa": cls.SPANISH,
+            "spanish": cls.SPANISH,
+            "español": cls.SPANISH,
+            "en": cls.ENGLISH,
+            "eng": cls.ENGLISH,
+            "english": cls.ENGLISH,
+            "fr": cls.FRENCH,
+            "fra": cls.FRENCH,
+            "french": cls.FRENCH,
+            "français": cls.FRENCH,
+            "de": cls.GERMAN,
+            "deu": cls.GERMAN,
+            "german": cls.GERMAN,
+            "deutsch": cls.GERMAN,
+            "it": cls.ITALIAN,
+            "ita": cls.ITALIAN,
+            "italian": cls.ITALIAN,
+            "italiano": cls.ITALIAN,
+            "pt": cls.PORTUGUESE,
+            "por": cls.PORTUGUESE,
+            "portuguese": cls.PORTUGUESE,
+            "português": cls.PORTUGUESE,
+            "ru": cls.RUSSIAN,
+            "rus": cls.RUSSIAN,
+            "russian": cls.RUSSIAN,
+            "ja": cls.JAPANESE,
+            "jpn": cls.JAPANESE,
+            "japanese": cls.JAPANESE,
+            "ko": cls.KOREAN,
+            "kor": cls.KOREAN,
+            "korean": cls.KOREAN,
+            "zh": cls.CHINESE_SIMPLIFIED,
+            "zho": cls.CHINESE_SIMPLIFIED,
+            "chinese": cls.CHINESE_SIMPLIFIED,
+            "zh-tw": cls.CHINESE_TRADITIONAL,
+            "nl": cls.DUTCH,
+            "nld": cls.DUTCH,
+            "dutch": cls.DUTCH,
+            "pl": cls.POLISH,
+            "pol": cls.POLISH,
+            "polish": cls.POLISH,
+        }
+        
+        return lang_map.get(normalized, cls.SPANISH)  # Default to Spanish
+
+
 class TranslationSource(str, Enum):
     """Fuentes de traducción disponibles."""
 
