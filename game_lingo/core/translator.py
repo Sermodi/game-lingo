@@ -17,7 +17,7 @@ from ..apis import DeepLAPI, GoogleTranslateAPI, SteamAPI
 from ..apis.rawg_api import RAWGAPIConnector
 from ..config import settings
 from ..exceptions import GameNotFoundError, ValidationError
-from ..models.game import GameInfo, Platform, TranslationResult, TranslationSource
+from ..models.game import GameInfo, Language, Platform, TranslationResult, TranslationSource
 from .cache import Cache
 from .rate_limiter import RateLimiter
 
@@ -97,6 +97,7 @@ class GameDescriptionTranslator:
         game_identifier: str | None = None,
         english_description: str | None = None,
         platform: Platform | str | None = None,
+        target_lang: Language | str = Language.SPANISH,
         force_refresh: bool = False,
     ) -> TranslationResult:
         """
@@ -106,6 +107,7 @@ class GameDescriptionTranslator:
             game_identifier: Nombre del juego, Steam ID, o identificador (opcional si se proporciona descripción)
             english_description: Descripción en inglés (opcional, si se proporciona se usa directamente)
             platform: Plataforma específica (opcional)
+            target_lang: Idioma destino para la traducción (default: Spanish)
             force_refresh: Forzar actualización ignorando caché
 
         Returns:
@@ -129,6 +131,10 @@ class GameDescriptionTranslator:
 
         if isinstance(platform, str):
             platform = Platform.from_string(platform)
+        
+        # Normalizar idioma destino
+        if isinstance(target_lang, str):
+            target_lang = Language.from_string(target_lang)
 
         # Crear resultado inicial
         result = TranslationResult(
