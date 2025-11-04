@@ -17,7 +17,13 @@ from ..apis import DeepLAPI, GoogleTranslateAPI, SteamAPI
 from ..apis.rawg_api import RAWGAPIConnector
 from ..config import settings
 from ..exceptions import GameNotFoundError, ValidationError
-from ..models.game import GameInfo, Language, Platform, TranslationResult, TranslationSource
+from ..models.game import (
+    GameInfo,
+    Language,
+    Platform,
+    TranslationResult,
+    TranslationSource,
+)
 from .cache import Cache
 from .rate_limiter import RateLimiter
 
@@ -131,7 +137,7 @@ class GameDescriptionTranslator:
 
         if isinstance(platform, str):
             platform = Platform.from_string(platform)
-        
+
         # Normalizar idioma destino
         if isinstance(target_lang, str):
             target_lang = Language.from_string(target_lang)

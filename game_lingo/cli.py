@@ -11,7 +11,7 @@ import asyncio
 import logging
 import os
 import sys
-from typing import NoReturn
+from typing import Any, NoReturn
 
 from . import __version__
 from .core.translator import GameDescriptionTranslator
@@ -187,7 +187,7 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
-def print_game_result(result: any, show_full: bool = False, target_lang: str = "es") -> None:
+def print_game_result(result: Any, show_full: bool = False, target_lang: str = "es") -> None:
     """Imprime el resultado de búsqueda de un juego de forma formateada."""
     game = result.game_info
 
@@ -225,11 +225,11 @@ def print_game_result(result: any, show_full: bool = False, target_lang: str = "
 
     # Descripción en el idioma solicitado
     description = game.get_description(target_lang)
-    
+
     # Fallback a inglés si no hay descripción en el idioma destino
     if not description:
         description = game.get_best_description_en()
-    
+
     desc_type = "Descripción Completa" if show_full else "Descripción"
 
     if description:
@@ -249,7 +249,7 @@ def print_game_result(result: any, show_full: bool = False, target_lang: str = "
     print_separator()
 
 
-def print_translation_result(result: any) -> None:
+def print_translation_result(result: Any) -> None:
     """Imprime el resultado de traducción de forma formateada."""
     print_separator()
     print("📝 Traducción")
@@ -289,7 +289,7 @@ async def cmd_search(args: argparse.Namespace) -> int:
 
         # Obtener idioma destino
         target_lang = Language.from_string(args.target_lang)
-        
+
         print(f"\n🔍 Buscando '{args.game_name}'...")
         if platform:
             print(f"   Plataforma: {platform.value}")
@@ -352,7 +352,7 @@ async def cmd_describe(args: argparse.Namespace) -> int:
     """Ejecuta el comando de búsqueda con descripción proporcionada."""
     try:
         translator = GameDescriptionTranslator()
-        
+
         # Obtener idioma destino
         target_lang = Language.from_string(args.target_lang)
 
@@ -429,7 +429,7 @@ async def cmd_info(args: argparse.Namespace) -> int:
     """Ejecuta el comando de información detallada."""
     try:
         translator = GameDescriptionTranslator()
-        
+
         # Obtener idioma destino
         target_lang = Language.from_string(args.target_lang)
 
