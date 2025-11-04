@@ -11,22 +11,22 @@ help:
 
 format:
 	@echo "Formateando código con black..."
-	black game_translator tests
+	black game_lingo tests
 	@echo "✓ Formato aplicado"
 
 lint:
 	@echo "Ejecutando ruff linter..."
-	ruff check game_translator
+	ruff check game_lingo
 	@echo "✓ Linting completado"
 
 lint-fix:
 	@echo "Aplicando fixes automáticos de ruff..."
-	ruff check game_translator --fix
+	ruff check game_lingo --fix
 	@echo "✓ Fixes aplicados"
 
 type-check:
 	@echo "Ejecutando mypy type checker..."
-	mypy game_translator --ignore-missing-imports
+	mypy game_lingo --ignore-missing-imports
 	@echo "✓ Type checking completado"
 
 test:

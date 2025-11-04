@@ -152,4 +152,5 @@ y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
 - `mypy ^1.7.0`: Type checker
 - `types-requests ^2.31.0`: Type stubs para requests
 
-[0.1.0]: https://github.com/sermodi/game-description-translator/releases/tag/v0.1.0
+[0.1.0]: https://github.com/Sermodi/game-lingo/releases/tag/v0.1.0
+[0.2.0]: https://github.com/Sermodi/game-lingo/releases/tag/v0.2.0
