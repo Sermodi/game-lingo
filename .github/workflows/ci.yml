@@ -28,16 +28,16 @@ jobs:
     
     - name: Check code formatting with black
       run: |
-        black --check game_translator tests
+        black --check game_lingo tests
     
     - name: Lint with ruff
       run: |
-        ruff check game_translator
+        ruff check game_lingo
       continue-on-error: false
     
     - name: Type check with mypy
       run: |
-        mypy game_translator --ignore-missing-imports
+        mypy game_lingo --ignore-missing-imports
       continue-on-error: true  # Permitir que pase con warnings
 
   test:
@@ -64,7 +64,7 @@ jobs:
     
     - name: Run tests
       run: |
-        pytest tests/ -v --cov=game_translator --cov-report=xml
+        pytest tests/ -v --cov=game_lingo --cov-report=xml
       continue-on-error: true  # Permitir que pase si no hay tests aún
     
     - name: Upload coverage to Codecov

@@ -5,8 +5,8 @@ description = "Multi-language video game description translator with smart API o
 authors = ["Sermodi <sermodsoftware@gmail.com>"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/sermodi/game-lingo"
-repository = "https://github.com/sermodi/game-lingo"
+homepage = "https://github.com/Sermodi/game-lingo"
+repository = "https://github.com/Sermodi/game-lingo"
 keywords = ["games", "translation", "steam", "rawg", "deepl", "videogames", "api", "multilingual", "i18n", "localization"]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -20,10 +20,10 @@ classifiers = [
     "Topic :: Games/Entertainment",
     "Operating System :: OS Independent",
 ]
-packages = [{include = "game_translator"}]
+packages = [{include = "game_lingo"}]
 
 [tool.poetry.scripts]
-game-lingo = "game_translator.cli:main"
+game-lingo = "game_lingo.cli:main"
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -113,7 +113,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"game_translator/cli.py" = ["T201"]
+"game_lingo/cli.py" = ["T201"]
 "tests/**/*.py" = ["PLR0913", "PLR0915", "S101"]
 "**/__init__.py" = ["F401"]
 
@@ -141,7 +141,7 @@ warn_required_dynamic_aliases = true
 
 # Configuración por módulo
 [[tool.mypy.overrides]]
-module = "game_translator.models.*"
+module = "game_lingo.models.*"
 # Pydantic genera constructores dinámicamente, ignorar algunos errores
 disable_error_code = ["call-arg", "misc"]
 
@@ -156,11 +156,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=game_translator --cov-report=term-missing --cov-report=html"
+addopts = "--cov=game_lingo --cov-report=term-missing --cov-report=html"
 asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["game_translator"]
+source = ["game_lingo"]
 omit = ["*/tests/*", "*/test_*"]
 
 [tool.coverage.report]

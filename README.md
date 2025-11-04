@@ -137,7 +137,7 @@ game-lingo info "Stardew Valley"
 ### Ver estadísticas de uso
 
 ```bash
-python -m game_translator stats
+python -m game_lingo stats
 ```
 
 Muestra estadísticas detalladas de uso de APIs en tiempo real, incluyendo:
@@ -157,17 +157,17 @@ game-lingo search --help
 
 ```bash
 # Usando Python directamente
-python -m game_translator search "Terraria"
+python -m game_lingo search "Terraria"
 
 # O con el script
-python game_translator/cli.py search "Minecraft"
+python game_lingo/cli.py search "Minecraft"
 ```
 
 ### Uso como Librería (Python)
 
 ```python
 import asyncio
-from game_translator import GameDescriptionTranslator
+from game_lingo import GameDescriptionTranslator
 
 async def main():
     translator = GameDescriptionTranslator()
@@ -192,8 +192,8 @@ asyncio.run(main())
 
 ```python
 import asyncio
-from game_translator import GameDescriptionTranslator
-from game_translator.models import Platform
+from game_lingo import GameDescriptionTranslator
+from game_lingo.models import Platform
 
 async def advanced_example():
     # Configuración personalizada
@@ -241,7 +241,7 @@ asyncio.run(advanced_example())
 
 ```python
 import asyncio
-from game_translator import GameDescriptionTranslator
+from game_lingo import GameDescriptionTranslator
 
 async def batch_translate():
     translator = GameDescriptionTranslator()
@@ -282,7 +282,7 @@ asyncio.run(batch_translate())
 poetry run pytest
 
 # Con cobertura
-poetry run pytest --cov=game_translator --cov-report=html
+poetry run pytest --cov=game_lingo --cov-report=html
 
 # Solo tests unitarios
 poetry run pytest tests/unit/
@@ -348,20 +348,20 @@ poetry install --with dev
 poetry run pre-commit install
 
 # Linting
-poetry run ruff check game_translator/
-poetry run black game_translator/
+poetry run ruff check game_lingo/
+poetry run black game_lingo/
 
 # Type checking
-poetry run mypy game_translator/
+poetry run mypy game_lingo/
 
 # Security scan
-poetry run bandit -r game_translator/
+poetry run bandit -r game_lingo/
 ```
 
 ### Estructura del Proyecto
 
 ```
-game_translator/
+game_lingo/
 ├── __init__.py              # API pública
 ├── config.py                # Configuración centralizada
 ├── exceptions.py            # Excepciones personalizadas
