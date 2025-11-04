@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field, validator
 
 class Platform(str, Enum):
     """Plataformas de videojuegos soportadas."""
-    
+
     PC = "pc"
     STEAM = "steam"
     PLAYSTATION_5 = "ps5"
@@ -26,7 +26,7 @@ class Platform(str, Enum):
     NINTENDO_3DS = "nintendo_3ds"
     MOBILE = "mobile"
     WEB = "web"
-    
+
     @classmethod
     def from_string(cls, platform_str: str) -> Platform:
         """Convierte string a Platform, con normalización."""
@@ -52,91 +52,115 @@ class Platform(str, Enum):
             "ios": cls.MOBILE,
             "web": cls.WEB,
         }
-        
+
         normalized = platform_str.lower().strip()
         return platform_map.get(normalized, cls.PC)
 
 
 class TranslationSource(str, Enum):
     """Fuentes de traducción disponibles."""
-    
+
     NATIVE = "native"  # Descripción nativa en español
-    DEEPL = "deepl"    # Traducido con DeepL
+    DEEPL = "deepl"  # Traducido con DeepL
     GOOGLE = "google"  # Traducido con Google Translate
     MANUAL = "manual"  # Traducción manual
 
 
 class GameInfo(BaseModel):
     """Información completa de un videojuego."""
-    
+
     # Identificadores
     name: str = Field(..., description="Nombre del juego")
     steam_id: int | None = Field(None, description="Steam App ID")
     rawg_id: int | None = Field(None, description="RAWG Game ID")
     igdb_id: int | None = Field(None, description="IGDB Game ID")
-    
+
     # Información básica
-    platforms: list[Platform] = Field(default_factory=list, description="Plataformas disponibles")
+    platforms: list[Platform] = Field(
+        default_factory=list, description="Plataformas disponibles",
+    )
     release_date: datetime | None = Field(None, description="Fecha de lanzamiento")
     developer: str | None = Field(None, description="Desarrollador")
     publisher: str | None = Field(None, description="Distribuidor")
     genres: list[str] = Field(default_factory=list, description="Géneros del juego")
-    
+
     # Descripciones
-    short_description_en: str | None = Field(None, description="Descripción corta en inglés")
+    short_description_en: str | None = Field(
+        None, description="Descripción corta en inglés",
+    )
     # Compat: aceptar `description` en tests y exponer alias
-    description: str | None = Field(None, description="Alias para short_description_en (compat)")
-    short_description_es: str | None = Field(None, description="Descripción corta en español")
-    detailed_description_en: str | None = Field(None, description="Descripción detallada en inglés")
-    detailed_description_es: str | None = Field(None, description="Descripción detallada en español")
-    
+    description: str | None = Field(
+        None, description="Alias para short_description_en (compat)",
+    )
+    short_description_es: str | None = Field(
+        None, description="Descripción corta en español",
+    )
+    detailed_description_en: str | None = Field(
+        None, description="Descripción detallada en inglés",
+    )
+    detailed_description_es: str | None = Field(
+        None, description="Descripción detallada en español",
+    )
+
     # Metadatos
-    metacritic_score: int | None = Field(None, ge=0, le=100, description="Puntuación Metacritic")
-    user_score: float | None = Field(None, ge=0, le=10, description="Puntuación de usuarios")
+    metacritic_score: int | None = Field(
+        None, ge=0, le=100, description="Puntuación Metacritic",
+    )
+    user_score: float | None = Field(
+        None, ge=0, le=10, description="Puntuación de usuarios",
+    )
     price: float | None = Field(None, ge=0, description="Precio en USD")
     is_free: bool = Field(False, description="¿Es gratuito?")
-    
+
     # URLs e imágenes
     store_url: str | None = Field(None, description="URL de la tienda")
     header_image: str | None = Field(None, description="URL imagen de cabecera")
     screenshots: list[str] = Field(default_factory=list, description="URLs de capturas")
-    
+
     # Metadatos de traducción
-    translation_source: TranslationSource | None = Field(None, description="Fuente de la traducción")
-    translation_confidence: float | None = Field(None, ge=0, le=1, description="Confianza en la traducción")
-    last_updated: datetime = Field(default_factory=datetime.now, description="Última actualización")
+    translation_source: TranslationSource | None = Field(
+        None, description="Fuente de la traducción",
+    )
+    translation_confidence: float | None = Field(
+        None, ge=0, le=1, description="Confianza en la traducción",
+    )
+    last_updated: datetime = Field(
+        default_factory=datetime.now, description="Última actualización",
+    )
     # Fuente de los datos brutos (por ejemplo 'rawg', 'steam') - usado en tests
-    source_api: str | None = Field(None, description="Fuente original de datos (rawg, steam, ...)" )
-    
-    @validator('platforms', pre=True)
+    source_api: str | None = Field(
+        None, description="Fuente original de datos (rawg, steam, ...)",
+    )
+
+    @validator("platforms", pre=True)
     def validate_platforms(cls, v: Any) -> list[Platform]:
         """Valida y convierte plataformas a enum."""
         if isinstance(v, str):
             return [Platform.from_string(v)]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return [Platform.from_string(p) if isinstance(p, str) else p for p in v]
         return v or []
-    
-    @validator('genres', pre=True)
+
+    @validator("genres", pre=True)
     def validate_genres(cls, v: Any) -> list[str]:
         """Valida géneros."""
         if isinstance(v, str):
             return [v.strip()]
-        elif isinstance(v, list):
+        if isinstance(v, list):
             return [str(g).strip() for g in v if g]
         return v or []
-    
+
     def has_spanish_description(self) -> bool:
         """Verifica si tiene descripción en español."""
         return bool(self.short_description_es or self.detailed_description_es)
 
-    @validator('short_description_en', pre=True, always=True)
+    @validator("short_description_en", pre=True, always=True)
     def _populate_short_description_from_description(cls, v: Any, values: Any) -> Any:
         """Si el campo `description` fue pasado en la creación, usarlo como short_description_en."""
         if v:
             return v
         # values contiene otros campos pasados al constructor; si description existe, usarla
-        desc = values.get('description')
+        desc = values.get("description")
         if desc:
             return desc
         return v
@@ -145,11 +169,11 @@ class GameInfo(BaseModel):
     def description_text(self) -> str | None:
         """Compat: obtener la descripción preferida (español si existe, sino inglés)."""
         return self.get_best_description_es() or self.get_best_description_en()
-    
+
     def get_best_description_es(self) -> str | None:
         """Obtiene la mejor descripción disponible en español."""
         return self.detailed_description_es or self.short_description_es
-    
+
     def get_best_description_en(self) -> str | None:
         """Obtiene la mejor descripción disponible en inglés."""
         return self.detailed_description_en or self.short_description_en
@@ -157,36 +181,40 @@ class GameInfo(BaseModel):
 
 class TranslationResult(BaseModel):
     """Resultado de una operación de traducción."""
-    
+
     # Datos del juego
     game_info: GameInfo = Field(..., description="Información del juego")
-    
+
     # Resultado de traducción
     success: bool = Field(..., description="¿Traducción exitosa?")
     source: TranslationSource = Field(..., description="Fuente de la traducción")
     confidence: float = Field(..., ge=0, le=1, description="Confianza en la traducción")
-    
+
     # Metadatos de proceso
-    processing_time_ms: int = Field(..., ge=0, description="Tiempo de procesamiento en ms")
+    processing_time_ms: int = Field(
+        ..., ge=0, description="Tiempo de procesamiento en ms",
+    )
     apis_used: list[str] = Field(default_factory=list, description="APIs utilizadas")
     cache_hit: bool = Field(False, description="¿Resultado desde caché?")
-    
+
     # Errores y advertencias
     errors: list[str] = Field(default_factory=list, description="Errores encontrados")
     warnings: list[str] = Field(default_factory=list, description="Advertencias")
-    
+
     # Timestamp
-    timestamp: datetime = Field(default_factory=datetime.now, description="Momento de la traducción")
-    
+    timestamp: datetime = Field(
+        default_factory=datetime.now, description="Momento de la traducción",
+    )
+
     def add_error(self, error: str) -> None:
         """Añade un error al resultado."""
         self.errors.append(error)
         self.success = False
-    
+
     def add_warning(self, warning: str) -> None:
         """Añade una advertencia al resultado."""
         self.warnings.append(warning)
-    
+
     def add_api_used(self, api_name: str) -> None:
         """Registra el uso de una API."""
         if api_name not in self.apis_used:

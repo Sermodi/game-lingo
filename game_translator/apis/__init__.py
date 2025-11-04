@@ -12,10 +12,10 @@ from __future__ import annotations
 
 # Definir __all__ al inicio
 __all__ = [
-    "SteamAPI",
-    "RAWGAPI", 
+    "RAWGAPI",
     "DeepLAPI",
     "GoogleTranslateAPI",
+    "SteamAPI",
 ]
 
 # Importar conectores cuando estén disponibles
@@ -30,21 +30,24 @@ except ImportError:
     RAWGAPI = None
 
 try:
-    from .deepl_api import DeepLAPIConnector, translate_game_description as deepl_translate
+    from .deepl_api import DeepLAPIConnector
+    from .deepl_api import translate_game_description as deepl_translate
+
     DeepLAPI = DeepLAPIConnector
-    __all__.extend(['DeepLAPIConnector', 'deepl_translate'])
+    __all__.extend(["DeepLAPIConnector", "deepl_translate"])
 except ImportError:
     DeepLAPIConnector = None
     deepl_translate = None
 
 try:
-    from .google_translate_api import (
-        GoogleTranslateAPIConnector, 
-        translate_game_description as google_translate,
-        detect_language as google_detect_language
-    )
+    from .google_translate_api import GoogleTranslateAPIConnector
+    from .google_translate_api import detect_language as google_detect_language
+    from .google_translate_api import translate_game_description as google_translate
+
     GoogleTranslateAPI = GoogleTranslateAPIConnector
-    __all__.extend(['GoogleTranslateAPIConnector', 'google_translate', 'google_detect_language'])
+    __all__.extend(
+        ["GoogleTranslateAPIConnector", "google_detect_language", "google_translate"],
+    )
 except ImportError:
     GoogleTranslateAPIConnector = None
     google_translate = None
