@@ -47,6 +47,7 @@ class RateLimitError(APIError):
         api_name: str,
         retry_after: int | None = None,
         message: str | None = None,
+        status_code: int | None = None,
         details: dict[str, str] | None = None,
     ) -> None:
         if message:
@@ -55,7 +56,7 @@ class RateLimitError(APIError):
             final_message = f"Rate limit exceeded for {api_name} API"
             if retry_after:
                 final_message += f". Retry after {retry_after} seconds"
-        super().__init__(final_message, api_name, 429, details)
+        super().__init__(final_message, api_name, status_code or 429, details)
         self.retry_after = retry_after
 
 
@@ -66,6 +67,7 @@ class AuthenticationError(APIError):
         self,
         api_name: str,
         message: str | None = None,
+        status_code: int | None = None,
         details: dict[str, str] | None = None,
     ) -> None:
         # Permite pasar un mensaje personalizado o usar el por defecto
@@ -73,7 +75,7 @@ class AuthenticationError(APIError):
             final_message = message
         else:
             final_message = f"Authentication failed for {api_name} API"
-        super().__init__(final_message, api_name, 401, details)
+        super().__init__(final_message, api_name, status_code or 401, details)
 
 
 class TranslationError(GameTranslatorError):
