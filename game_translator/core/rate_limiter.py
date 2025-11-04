@@ -336,7 +336,7 @@ class RateLimiter:
             }
 
         # Estadísticas globales
-        stats = {
+        stats: Dict[str, Any] = {
             "global": self.global_stats.copy(),
             "apis": {},
         }
@@ -452,7 +452,7 @@ class RateLimiter:
         """Guarda estado actual en archivo."""
         try:
             # Preparar estado para serialización
-            state = {
+            state: Dict[str, Any] = {
                 "global_stats": self.global_stats,
                 "api_states": {},
                 "timestamp": time.time(),
