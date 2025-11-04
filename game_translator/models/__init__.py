@@ -10,14 +10,14 @@ Contiene las estructuras de datos principales:
 
 from __future__ import annotations
 
+from .api_response import APIResponse, RAWGResponse, SteamResponse
 from .game import GameInfo, Platform, TranslationResult
-from .api_response import APIResponse, SteamResponse, RAWGResponse
 
 __all__ = [
-    "GameInfo",
-    "Platform", 
-    "TranslationResult",
     "APIResponse",
-    "SteamResponse",
+    "GameInfo",
+    "Platform",
     "RAWGResponse",
+    "SteamResponse",
+    "TranslationResult",
 ]
