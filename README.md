@@ -1,5 +1,13 @@
 # GameLingo
 
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![GitHub release](https://img.shields.io/github/v/release/Sermodi/game-lingo)](https://github.com/Sermodi/game-lingo/releases)
+[![GitHub stars](https://img.shields.io/github/stars/Sermodi/game-lingo?style=social)](https://github.com/Sermodi/game-lingo)
+
 > Multi-language video game description translator with smart API orchestration
 
 Intelligent game description translation system using a 3-tier hybrid strategy to get the best translations possible in any language.
