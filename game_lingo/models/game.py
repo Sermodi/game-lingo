@@ -95,7 +95,7 @@ class Language(str, Enum):
     def from_string(cls, lang_str: str) -> Language:
         """Convierte string a Language, con normalización."""
         normalized = lang_str.lower().strip()
-        
+
         # Mapeo de códigos comunes
         lang_map = {
             "es": cls.SPANISH,
@@ -141,7 +141,7 @@ class Language(str, Enum):
             "pol": cls.POLISH,
             "polish": cls.POLISH,
         }
-        
+
         return lang_map.get(normalized, cls.SPANISH)  # Default to Spanish
 
 
@@ -189,7 +189,7 @@ class GameInfo(BaseModel):
     detailed_description_es: str | None = Field(
         None, description="Descripción detallada en español",
     )
-    
+
     # Descripciones traducidas (almacena traducciones en diferentes idiomas)
     # Formato: {"fr": "description en francés", "de": "description en alemán", ...}
     translated_descriptions: dict[str, str] = Field(
@@ -247,44 +247,44 @@ class GameInfo(BaseModel):
     def has_spanish_description(self) -> bool:
         """Verifica si tiene descripción en español."""
         return bool(self.short_description_es or self.detailed_description_es)
-    
+
     def has_description(self, lang: Language | str) -> bool:
         """Verifica si tiene descripción en el idioma especificado."""
         if isinstance(lang, str):
             lang = Language.from_string(lang)
-        
+
         lang_code = lang.value
-        
+
         # Verificar campos específicos de español
         if lang_code == "es":
             return self.has_spanish_description()
-        
+
         # Verificar en translated_descriptions
         return lang_code in self.translated_descriptions
-    
+
     def get_description(self, lang: Language | str) -> str | None:
         """Obtiene la descripción en el idioma especificado."""
         if isinstance(lang, str):
             lang = Language.from_string(lang)
-        
+
         lang_code = lang.value
-        
+
         # Casos especiales para español e inglés (campos legacy)
         if lang_code == "es":
             return self.get_best_description_es()
-        elif lang_code == "en":
+        if lang_code == "en":
             return self.get_best_description_en()
-        
+
         # Buscar en translated_descriptions
         return self.translated_descriptions.get(lang_code)
-    
+
     def set_description(self, lang: Language | str, description: str) -> None:
         """Establece la descripción en el idioma especificado."""
         if isinstance(lang, str):
             lang = Language.from_string(lang)
-        
+
         lang_code = lang.value
-        
+
         # Casos especiales para español e inglés (campos legacy)
         if lang_code == "es":
             if not self.short_description_es:
