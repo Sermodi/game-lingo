@@ -1,9 +1,28 @@
 # Changelog
 
-Todos los cambios notables de este proyecto serán documentados en este archivo.
+Todos los cambios notables del proyecto serán documentados en este archivo.
 
 El formato está basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/),
 y este proyecto adhiere a [Semantic Versioning](https://semver.org/lang/es/).
+
+## [0.2.0] - 2025-11-03
+
+### Añadido
+- **Integración completa del rate limiter**: Todas las APIs ahora registran sus requests y uso de caracteres
+- **Tracking de costos en tiempo real**: El comando `stats` muestra datos precisos de uso de APIs
+- **Persistencia de estadísticas**: Las estadísticas se guardan después de cada request para mayor precisión
+
+### Cambiado
+- Steam API ahora acepta `rate_limiter` como parámetro opcional
+- RAWG API ahora acepta `rate_limiter` como parámetro opcional (antes creaba su propia instancia)
+- DeepL API ahora acepta `rate_limiter` como parámetro opcional
+- Google Translate API ahora acepta `rate_limiter` como parámetro opcional
+- Translator pasa el rate limiter compartido a todas las APIs para tracking unificado
+
+### Mejorado
+- Rate limiter ahora guarda estado inmediatamente después de cada request
+- Estadísticas globales se actualizan correctamente entre ejecuciones
+- Comando `stats` muestra datos precisos de requests y caracteres usados
 
 ## [0.1.0] - 2025-11-03
 

@@ -25,6 +25,7 @@ import aiohttp
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..config import settings
+from ..core.rate_limiter import RateLimiter
 from ..exceptions import APIError, GameNotFoundError, RateLimitError
 from ..models.api_response import SteamResponse
 from ..models.game import GameInfo, Platform
@@ -56,16 +57,22 @@ class SteamAPI:
         "en": "english",
     }
     
-    def __init__(self, session: Optional[aiohttp.ClientSession] = None) -> None:
+    def __init__(
+        self, 
+        session: Optional[aiohttp.ClientSession] = None,
+        rate_limiter: Optional[RateLimiter] = None
+    ) -> None:
         """
         Inicializa el conector de Steam API.
         
         Args:
             session: Sesión HTTP personalizada (opcional)
+            rate_limiter: Rate limiter para controlar uso de API (opcional)
         """
         self.session = session
         self._own_session = session is None
         self.timeout = aiohttp.ClientTimeout(total=settings.API_TIMEOUT_SECONDS)
+        self.rate_limiter = rate_limiter
         
         logger.info("Steam API connector initialized")
     
@@ -125,6 +132,10 @@ class SteamAPI:
         }
         
         try:
+            # Rate limiting
+            if self.rate_limiter:
+                await self.rate_limiter.wait_if_needed("steam")
+            
             logger.debug(f"Searching Steam for: {query} (language: {lang_code})")
             
             async with self.session.get(self.SEARCH_URL, params=params) as response:
@@ -191,6 +202,10 @@ class SteamAPI:
         }
         
         try:
+            # Rate limiting
+            if self.rate_limiter:
+                await self.rate_limiter.wait_if_needed("steam")
+            
             logger.debug(f"Getting Steam details for app_id: {app_id} (language: {lang_code})")
             
             async with self.session.get(self.DETAILS_URL, params=params) as response:
