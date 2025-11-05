@@ -188,7 +188,7 @@ def print_separator(char: str = "=", length: int = 70) -> None:
 
 
 def print_game_result(
-    result: Any, show_full: bool = False, target_lang: str = "es"
+    result: Any, show_full: bool = False, target_lang: str = "es",
 ) -> None:
     """Imprime el resultado de búsqueda de un juego de forma formateada."""
     game = result.game_info
@@ -374,7 +374,7 @@ async def cmd_describe(args: argparse.Namespace) -> int:
             if result.game_info.has_description(target_lang):
                 print(f"✅ Encontrada descripción nativa en {target_lang.value}")
                 print_game_result(
-                    result, show_full=args.full, target_lang=target_lang.value
+                    result, show_full=args.full, target_lang=target_lang.value,
                 )
                 return 0
             print(
