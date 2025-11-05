@@ -389,12 +389,12 @@ async def main():
                 print("👋 ¡Hasta luego!")
                 break
             else:
-                print("❌ Opción inválida. Selecciona 1-7.")
+                print("[ERROR] Opción inválida. Selecciona 1-7.")
 
         except KeyboardInterrupt:
-            print("\n\n⚠️ Operación cancelada por el usuario.")
+            print("\n\n[!] Operación cancelada por el usuario.")
         except Exception as e:
-            print(f"\n❌ Error inesperado: {e}")
+            print(f"\n[ERROR] Error inesperado: {e}")
             logger.exception("Error en test manual")
 
 

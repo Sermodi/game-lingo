@@ -1,6 +1,6 @@
 # Guía Rápida del CLI - Game Description Translator
 
-## 🚀 Inicio Rápido
+## Inicio Rápido
 
 ### Instalación
 
@@ -19,7 +19,7 @@ pip install -e .
 game-lingo search "Hollow Knight"
 ```
 
-## 📋 Comandos Disponibles
+## Comandos Disponibles
 
 ### 1. `search` - Buscar Juegos
 
@@ -128,11 +128,11 @@ game-lingo describe "Indie Game" "An epic adventure in a vast fantasy world" --f
 
 **Ejemplo de salida (con descripción nativa):**
 ```
-🔍 Buscando 'Celeste' con descripción proporcionada...
+Buscando 'Celeste' con descripción proporcionada...
 
-✅ Encontrada descripción nativa en español
+[OK] Encontrada descripción nativa en español
 ======================================================================
-🎮 Celeste
+Celeste
 ======================================================================
 Steam ID: 504230
 Descripción: Ayuda a Madeline a sobrevivir a su viaje interior...
@@ -140,12 +140,12 @@ Descripción: Ayuda a Madeline a sobrevivir a su viaje interior...
 
 **Ejemplo de salida (traduciendo proporcionada):**
 ```
-🔍 Buscando 'My Indie Game' con descripción proporcionada...
+Buscando 'My Indie Game' con descripción proporcionada...
 
-⚠️  Juego no encontrado en bases de datos, traduciendo descripción proporcionada...
+Juego no encontrado en bases de datos, traduciendo descripción proporcionada...
 
 ======================================================================
-🎮 My Indie Game
+My Indie Game
 ======================================================================
 
 Descripción (traducida):
@@ -195,30 +195,30 @@ game-lingo stats --reset
 
 **Ejemplo de salida:**
 ```
-📊 Estadísticas de Uso
+Estadísticas de Uso
 ======================================================================
 
-🔄 Rate Limiter - Uso de APIs
+Rate Limiter - Uso de APIs
 ----------------------------------------------------------------------
 
-🎮 Steam Store API
+Steam Store API
    Límite: 200 req/5min
    Costo: Gratuita
    Requests usados: 5
 
-🎯 RAWG API
+RAWG API
    Límite: 27 req/hora
    Costo: Gratuita (con key)
    Requests usados: 2
 
-🌐 DeepL API
+DeepL API
    Límite: 20 req/min
    Costo: 500k chars/mes gratis
    Requests usados: 3
    Caracteres usados: 1,245
 
 
-💾 Caché
+Caché
 ----------------------------------------------------------------------
 
    Entradas totales: 10
@@ -230,24 +230,24 @@ game-lingo stats --reset
    Misses: 4
 
 
-💰 Resumen de Costos
+Resumen de Costos
 ----------------------------------------------------------------------
 
    APIs Gratuitas:
-   • Steam Store API: ✅ Totalmente gratuita
-   • RAWG API: ✅ Gratuita (requiere registro)
+   • Steam Store API: [OK] Totalmente gratuita
+   • RAWG API: [OK] Gratuita (requiere registro)
 
    APIs de Traducción:
-   • DeepL Free: ✅ 500,000 caracteres/mes gratis
-   • DeepL Pro: 💰 Desde €5.49/mes
-   • Google Translate: 💰 $20 por 1M de caracteres
+   • DeepL Free: [OK] 500,000 caracteres/mes gratis
+   • DeepL Pro: Desde €5.49/mes
+   • Google Translate: $20 por 1M de caracteres
 
-   💡 Tip: El caché reduce significativamente el uso de APIs
+   Tip: El caché reduce significativamente el uso de APIs
 
 ======================================================================
 ```
 
-## 🎯 Ejemplos de Uso
+## Ejemplos de Uso
 
 ### Buscar juegos populares
 
@@ -294,7 +294,7 @@ game-lingo search "Minecraft" --verbose
 game-lingo translate "Test" --verbose
 ```
 
-## 🔧 Desarrollo
+## Desarrollo
 
 ### Ejecutar sin instalar
 
@@ -316,7 +316,7 @@ pip install -e .
 game-lingo search "Test"
 ```
 
-## ⚙️ Configuración
+## Configuración
 
 El CLI usa las mismas variables de entorno que la librería:
 
@@ -332,7 +332,7 @@ CACHE_TTL_HOURS=168
 LOG_LEVEL=INFO
 ```
 
-## 🆘 Ayuda
+## Ayuda
 
 ### Ver ayuda general
 
@@ -354,7 +354,7 @@ game-lingo info --help
 game-lingo --version
 ```
 
-## 🐛 Solución de Problemas
+## Solución de Problemas
 
 ### Error: "Command not found"
 

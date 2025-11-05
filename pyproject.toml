@@ -1,9 +1,10 @@
 [tool.poetry]
 name = "game-lingo"
-version = "0.2.0"
+version = "0.3.0"
 description = "Multi-language video game description translator with smart API orchestration"
 authors = ["Sermodi <sermodsoftware@gmail.com>"]
-readme = "README.md"
+readme = "README.rst"
+readme-content-type = "text/x-rst"
 license = "MIT"
 homepage = "https://github.com/Sermodi/game-lingo"
 repository = "https://github.com/Sermodi/game-lingo"

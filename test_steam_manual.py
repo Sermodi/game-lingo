@@ -264,9 +264,9 @@ async def main():
         print("- Maneja errores apropiadamente")
         
     except KeyboardInterrupt:
-        print("\n⚠️ Pruebas interrumpidas por el usuario")
+        print("\n[!] Pruebas interrumpidas por el usuario")
     except Exception as e:
-        print(f"\n❌ Error general en las pruebas: {e}")
+        print(f"\n[ERROR] Error general en las pruebas: {e}")
         logger.exception("Error en pruebas de Steam API")
 
 

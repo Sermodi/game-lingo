@@ -382,12 +382,12 @@ async def cmd_describe(args: argparse.Namespace) -> int:
                 )
                 return 0
             print(
-                f"⚠️  No hay descripción nativa en {target_lang.value}, traduciendo la proporcionada...",
+                f"[!] No hay descripción nativa en {target_lang.value}, traduciendo la proporcionada...",
             )
             print()
         except GameNotFoundError:
             print(
-                "⚠️  Juego no encontrado en bases de datos, traduciendo descripción proporcionada...",
+                "[!] Juego no encontrado en bases de datos, traduciendo descripción proporcionada...",
             )
             print()
 
@@ -400,7 +400,7 @@ async def cmd_describe(args: argparse.Namespace) -> int:
 
         # Mostrar resultado
         print_separator()
-        print(f"🎮 {args.game_name}")
+        print(f"[Game] {args.game_name}")
         print_separator()
         print()
 
@@ -425,12 +425,12 @@ async def cmd_describe(args: argparse.Namespace) -> int:
         return 0
 
     except GameTranslatorError as e:
-        print(f"\n❌ Error: {e}", file=sys.stderr)
+        print(f"\n[!] Error: {e}", file=sys.stderr)
         return 1
 
     except Exception as e:
         logger.exception("Error inesperado")
-        print(f"\n❌ Error inesperado: {e}", file=sys.stderr)
+        print(f"\n[!] Error inesperado: {e}", file=sys.stderr)
         return 1
 
 
@@ -442,7 +442,7 @@ async def cmd_info(args: argparse.Namespace) -> int:
         # Obtener idioma destino
         target_lang = Language.from_string(args.target_lang)
 
-        print(f"\n🔍 Obteniendo información de '{args.game_name}'...")
+        print(f"\n[Search] Obteniendo información de '{args.game_name}'...")
         print(f"   Idioma destino: {target_lang.value}")
         print()
 
@@ -455,16 +455,16 @@ async def cmd_info(args: argparse.Namespace) -> int:
         return 0
 
     except GameNotFoundError as e:
-        print(f"\n❌ Error: {e}", file=sys.stderr)
+        print(f"\n[!] Error: {e}", file=sys.stderr)
         return 1
 
     except GameTranslatorError as e:
-        print(f"\n❌ Error: {e}", file=sys.stderr)
+        print(f"\n[!] Error: {e}", file=sys.stderr)
         return 1
 
     except Exception as e:
         logger.exception("Error inesperado")
-        print(f"\n❌ Error inesperado: {e}", file=sys.stderr)
+        print(f"\n[!] Error inesperado: {e}", file=sys.stderr)
         return 1
 
 
@@ -473,16 +473,16 @@ async def cmd_stats(args: argparse.Namespace) -> int:
     try:
         translator = GameDescriptionTranslator()
 
-        print("\n📊 Estadísticas de Uso")
+        print("\n[Stats] Estadísticas de Uso")
         print_separator()
         print()
 
         # Estadísticas del Rate Limiter
         if translator.rate_limiter:
-            print("🔄 Rate Limiter - Uso de APIs")
+            print("[Rate Limiter] Uso de APIs")
             print_separator("-")
             print()
-            print("ℹ️  IMPORTANTE: Los límites usan ventanas deslizantes.")
+            print("[!] IMPORTANTE: Los límites usan ventanas deslizantes.")
             print("   Los requests se liberan automáticamente después de su ventana.")
             print("   'En uso ahora' = requests activos en la ventana actual")
             print("   'Total requests' (abajo) = histórico total desde el inicio")
@@ -498,7 +498,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     "char_window": None,
                     "cost_free": True,
                     "cost_desc": "Gratuita",
-                    "icon": "🎮",
+                    "icon": "[Steam]",
                 },
                 "rawg": {
                     "name": "RAWG API",
@@ -508,7 +508,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     "char_window": None,
                     "cost_free": True,
                     "cost_desc": "Gratuita (requiere key)",
-                    "icon": "🎯",
+                    "icon": "[RAWG]",
                 },
                 "deepl": {
                     "name": "DeepL API",
@@ -518,7 +518,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     "char_window": "1 mes",
                     "cost_free": True,
                     "cost_desc": "500k chars/mes gratis",
-                    "icon": "🌐",
+                    "icon": "[DeepL]",
                 },
                 "google": {
                     "name": "Google Translate",
@@ -528,7 +528,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     "char_window": "1 mes",
                     "cost_free": True,
                     "cost_desc": "500k chars/mes gratis",
-                    "icon": "🔤",
+                    "icon": "[Google]",
                 },
             }
 
@@ -553,7 +553,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                         else 0
                     )
 
-                    print(f"   📊 Requests (ventana de {info['window']}):")
+                    print(f"   [Stats] Requests (ventana de {info['window']}):")
                     print(
                         f"      En uso ahora: {requests_in_window}/{info['max_requests']} ({requests_percent:.1f}%)",
                     )
@@ -561,11 +561,11 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
                     if requests_in_window > 0:
                         print(
-                            f"      ⚠️  Nota: Los requests se liberan automáticamente después de {info['window']}",
+                            f"      [!] Nota: Los requests se liberan automáticamente después de {info['window']}",
                         )
                     else:
                         print(
-                            f"      ✅ Ventana limpia - Puedes hacer {info['max_requests']} requests",
+                            f"      [OK] Ventana limpia - Puedes hacer {info['max_requests']} requests",
                         )
 
                     # Caracteres (solo para APIs de traducción)
@@ -577,7 +577,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                             else 0
                         )
 
-                        print(f"   📝 Caracteres (ventana de {info['char_window']}):")
+                        print(f"   [Stats] Caracteres (ventana de {info['char_window']}):")
                         print(
                             f"      En uso ahora: {chars_in_window:,}/{info['max_chars']:,} ({chars_percent:.1f}%)",
                         )
@@ -585,18 +585,18 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
                         if chars_in_window > 0:
                             print(
-                                f"      ⚠️  Nota: Se resetea cada {info['char_window']}",
+                                f"      [!] Nota: Se resetea cada {info['char_window']}",
                             )
                         else:
-                            print("      ✅ Cuota completa disponible")
+                            print("      [OK] Cuota completa disponible")
 
                     # Costo
-                    status = "✅ GRATIS" if info["cost_free"] else "💰 PAGO"
-                    print(f"   💵 Costo: {status} - {info['cost_desc']}")
+                    status = "[OK] GRATIS" if info["cost_free"] else "[!] PAGO"
+                    print(f"   [Cost] Costo: {status} - {info['cost_desc']}")
 
             # Estadísticas globales
             print()
-            print("📈 Estadísticas Globales")
+            print("[Stats] Estadísticas Globales")
             print(
                 f"   Total requests: {translator.rate_limiter.global_stats['total_requests']}",
             )
@@ -615,7 +615,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
         # Estadísticas del Caché
         if translator.cache:
             print()
-            print("💾 Caché")
+            print("[Cache] Caché")
             print_separator("-")
 
             try:
@@ -633,13 +633,13 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     print(f"   Misses: {stats.get('misses', 0)}")
 
             except Exception as e:
-                print(f"   (No se pudieron obtener estadísticas: {e})")
+                print(f"   [!] No se pudieron obtener estadísticas: {e}")
 
             print()
 
         # Resumen de costos y proyección
         print()
-        print("💰 Análisis de Costos")
+        print("[Cost] Análisis de Costos")
         print_separator("-")
         print()
 
@@ -654,7 +654,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                     )
                     total_translation_chars += chars
 
-        print("   📊 Uso Actual:")
+        print("   [Stats] Uso Actual:")
         print(f"      Total caracteres traducidos: {total_translation_chars:,}")
 
         # Proyección mensual (asumiendo uso constante)
@@ -668,7 +668,7 @@ async def cmd_stats(args: argparse.Namespace) -> int:
             )
 
             print()
-            print("   📈 Proyección Mensual (si continúa este ritmo):")
+            print("[Stats] Proyección Mensual (si continúa este ritmo):")
 
             # Proyección para 1000 requests/mes
             projected_1k = int(chars_per_request * 1000)
@@ -680,31 +680,31 @@ async def cmd_stats(args: argparse.Namespace) -> int:
 
             # Verificar si excede límites gratuitos
             print()
-            print("   💵 Evaluación de Costos:")
+            print("   [Cost] Evaluación de Costos:")
             if projected_1k <= 500000:
-                print("      ✅ Con 1k req/mes: GRATIS (dentro del límite)")
+                print("      [OK] Con 1k req/mes: GRATIS (dentro del límite)")
             else:
                 excess = projected_1k - 500000
-                print(f"      ⚠️  Con 1k req/mes: Excede {excess:,} caracteres")
+                print(f"      [!] Con 1k req/mes: Excede {excess:,} caracteres")
                 print("         DeepL Pro: ~€5.49/mes")
                 print(f"         Google Translate: ~${(excess / 1000000) * 20:.2f}/mes")
 
             if projected_10k <= 500000:
-                print("      ✅ Con 10k req/mes: GRATIS (dentro del límite)")
+                print("      [OK] Con 10k req/mes: GRATIS (dentro del límite)")
             else:
                 excess = projected_10k - 500000
-                print(f"      ⚠️  Con 10k req/mes: Excede {excess:,} caracteres")
+                print(f"      [!] Con 10k req/mes: Excede {excess:,} caracteres")
                 print("         DeepL Pro: ~€24.99/mes o más")
                 print(f"         Google Translate: ~${(excess / 1000000) * 20:.2f}/mes")
 
         print()
-        print("   📋 Información de Planes:")
-        print("      • DeepL Free: 500,000 caracteres/mes ✅ GRATIS")
+        print("   [Info] Información de Planes:")
+        print("      • DeepL Free: 500,000 caracteres/mes [OK] GRATIS")
         print("      • DeepL Pro Starter: 1M chars/mes - €5.49/mes")
         print("      • DeepL Pro Advanced: 10M chars/mes - €24.99/mes")
         print("      • Google Translate: 500k chars/mes gratis, luego $20/1M chars")
         print()
-        print("   💡 Tips para Optimizar:")
+        print("   [Tips] Tips para Optimizar:")
         print("      • El caché reduce ~60-80% las peticiones repetidas")
         print("      • Steam y RAWG son siempre gratuitas (usa primero)")
         print("      • Solo se traduce cuando no hay descripción nativa")
@@ -713,13 +713,13 @@ async def cmd_stats(args: argparse.Namespace) -> int:
         print_separator()
 
         if args.reset:
-            print("\n⚠️  Función de reset no implementada aún")
+            print("\n[!] Función de reset no implementada aún")
 
         return 0
 
     except Exception as e:
         logger.exception("Error obteniendo estadísticas")
-        print(f"\n❌ Error: {e}", file=sys.stderr)
+        print(f"\n[!] Error: {e}", file=sys.stderr)
         return 1
 
 
@@ -778,7 +778,7 @@ async def async_main(args: argparse.Namespace) -> int:
         return await cmd_info(args)
     if args.command == "stats":
         return await cmd_stats(args)
-    print(f"Comando desconocido: {args.command}", file=sys.stderr)
+    print(f"[!] Comando desconocido: {args.command}", file=sys.stderr)
     return 1
 
 
@@ -791,11 +791,11 @@ def main() -> NoReturn:
         exit_code = asyncio.run(async_main(args))
         sys.exit(exit_code)
     except KeyboardInterrupt:
-        print("\n\n⚠️  Operación cancelada por el usuario", file=sys.stderr)
+        print("\n\n[!] Operación cancelada por el usuario", file=sys.stderr)
         sys.exit(130)
     except Exception as e:
         logger.exception("Error fatal")
-        print(f"\n❌ Error fatal: {e}", file=sys.stderr)
+        print(f"\n[!] Error fatal: {e}", file=sys.stderr)
         sys.exit(1)
 
 

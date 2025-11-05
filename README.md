@@ -12,7 +12,7 @@
 
 Intelligent game description translation system using a 3-tier hybrid strategy to get the best translations possible in any language.
 
-## 🎯 Estrategia Híbrida
+## Estrategia Híbrida
 
 El sistema implementa una estrategia de 3 niveles para garantizar la mejor calidad y cobertura:
 
@@ -20,7 +20,7 @@ El sistema implementa una estrategia de 3 niveles para garantizar la mejor calid
 2. **RAWG API** (Fuente secundaria) - Para juegos no disponibles en Steam  
 3. **DeepL/Google Translate** (Traducción) - Solo para traducciones cuando no hay datos nativos
 
-## ✨ Características
+## Características
 
 - **Máxima Fidelidad**: Prioriza descripciones nativas en español
 - **Cobertura Completa**: Fallbacks múltiples aseguran 99%+ de éxito
@@ -31,7 +31,7 @@ El sistema implementa una estrategia de 3 niveles para garantizar la mejor calid
 - **Logging Completo**: Trazabilidad total del proceso
 - **Configuración Flexible**: Variables de entorno para todo
 
-## 🚀 Instalación
+## Instalación
 
 ### Requisitos
 
@@ -114,7 +114,7 @@ LOG_LEVEL=INFO
 LOG_FILE=logs/translator.log
 ```
 
-## 📖 Uso
+## Uso
 
 ### CLI (Línea de Comandos)
 
@@ -154,12 +154,11 @@ Muestra estadísticas detalladas de uso de APIs en tiempo real, incluyendo:
 - **Proyecciones de costos** basadas en uso actual
 - **Recomendaciones** para optimizar el uso de APIs
 
-**Nota**: Desde v0.2.0, todas las APIs están integradas con el rate limiter para tracking preciso de uso y costos.
+Nota: Desde v0.2.0, todas las APIs están integradas con el rate limiter para tracking preciso de uso y costos.
 
 # Ver ayuda
 game-lingo --help
 game-lingo search --help
-```
 
 #### Ejecutar sin instalar (desarrollo)
 
@@ -222,23 +221,23 @@ async def advanced_example():
     if result.success:
         game = result.game_info
         
-        print(f"🎮 {game.name}")
-        print(f"📅 Año: {game.release_year}")
-        print(f"🏷️ Géneros: {', '.join(game.genres)}")
-        print(f"🎯 Plataformas: {', '.join([p.value for p in game.platforms])}")
-        print(f"⭐ Rating: {game.rating}/100")
+        print(f"Juego: {game.name}")
+        print(f"Año: {game.release_year}")
+        print(f"Géneros: {', '.join(game.genres)}")
+        print(f"Plataformas: {', '.join([p.value for p in game.platforms])}")
+        print(f"Rating: {game.rating}/100")
         
-        print(f"\n📝 Descripción:")
+        print(f"\nDescripción:")
         print(game.get_spanish_description())
         
-        print(f"\n🔍 Metadatos de traducción:")
+        print(f"\nMetadatos de traducción:")
         print(f"   Fuente: {result.source.value}")
         print(f"   Confianza: {result.confidence:.2%}")
         print(f"   Tiempo: {result.processing_time_ms}ms")
         print(f"   APIs usadas: {', '.join(result.apis_used)}")
         
         if result.warnings:
-            print(f"\n⚠️ Advertencias:")
+            print(f"\nAdvertencias:")
             for warning in result.warnings:
                 print(f"   - {warning}")
 
@@ -272,16 +271,16 @@ async def batch_translate():
     
     for game, result in zip(games, results):
         if isinstance(result, Exception):
-            print(f"❌ {game}: Error - {result}")
+            print(f"{game}: Error - {result}")
         elif result.success:
-            print(f"✅ {game}: {result.source.value}")
+            print(f"{game}: {result.source.value}")
         else:
-            print(f"⚠️ {game}: {result.errors}")
+            print(f"{game}: {result.errors}")
 
 asyncio.run(batch_translate())
 ```
 
-## 🧪 Testing
+## Testing
 
 ### Ejecutar Tests
 
@@ -309,7 +308,7 @@ poetry run pytest tests/integration/ --api-tests
 poetry run pytest tests/unit/
 ```
 
-## 📊 Monitoreo y Estadísticas
+## Monitoreo y Estadísticas
 
 ### Estadísticas del Caché
 
@@ -318,7 +317,7 @@ async def cache_stats():
     translator = GameDescriptionTranslator()
     stats = await translator.cache.get_stats()
     
-    print(f"📈 Estadísticas del Caché:")
+    print(f"Estadísticas del Caché:")
     print(f"   Hit Rate: {stats['hit_rate']:.2%}")
     print(f"   Entradas activas: {stats['active_entries']}")
     print(f"   Tamaño total: {stats['total_size_mb']:.2f} MB")
@@ -335,16 +334,16 @@ async def cache_maintenance():
     
     # Limpiar entradas expiradas
     deleted = await translator.cache.cleanup_expired()
-    print(f"🧹 Eliminadas {deleted} entradas expiradas")
+    print(f"Eliminadas {deleted} entradas expiradas")
     
     # Optimizar base de datos
     await translator.cache.optimize()
-    print("⚡ Base de datos optimizada")
+    print("Base de datos optimizada")
 
 asyncio.run(cache_maintenance())
 ```
 
-## 🔧 Desarrollo
+## Desarrollo
 
 ### Configurar Entorno de Desarrollo
 
@@ -390,7 +389,7 @@ game_lingo/
     └── google_translate_api.py  # Google Translate API
 ```
 
-## 📋 Roadmap
+## Roadmap
 
 - [x] Arquitectura base y modelos
 - [x] Sistema de caché con SQLite
@@ -404,7 +403,7 @@ game_lingo/
 - [ ] Métricas y monitoring
 - [ ] Docker container
 
-## 🤝 Contribuir
+## Contribuir
 
 1. Fork del repositorio
 2. Crear rama feature: `git checkout -b feature/nueva-funcionalidad`
@@ -421,11 +420,11 @@ game_lingo/
 - **Commits**: Conventional Commits
 - **Documentación**: Docstrings estilo Google
 
-## 📄 Licencia
+## Licencia
 
 MIT License - ver [LICENSE](LICENSE) para detalles.
 
-## 🆘 Soporte
+## Soporte
 
 - **Issues**: [GitHub Issues](https://github.com/usuario/game-description-translator/issues)
 - **Documentación**: [Wiki del proyecto](https://github.com/usuario/game-description-translator/wiki)
