@@ -57,6 +57,94 @@ class Platform(str, Enum):
         return platform_map.get(normalized, cls.PC)
 
 
+class Language(str, Enum):
+    """Idiomas soportados para traducción."""
+
+    # Idiomas principales
+    SPANISH = "es"
+    ENGLISH = "en"
+    FRENCH = "fr"
+    GERMAN = "de"
+    ITALIAN = "it"
+    PORTUGUESE = "pt"
+    RUSSIAN = "ru"
+    JAPANESE = "ja"
+    KOREAN = "ko"
+    CHINESE_SIMPLIFIED = "zh"
+    CHINESE_TRADITIONAL = "zh-TW"
+    DUTCH = "nl"
+    POLISH = "pl"
+    SWEDISH = "sv"
+    DANISH = "da"
+    FINNISH = "fi"
+    NORWEGIAN = "no"
+    CZECH = "cs"
+    TURKISH = "tr"
+    GREEK = "el"
+    HUNGARIAN = "hu"
+    ROMANIAN = "ro"
+    BULGARIAN = "bg"
+    UKRAINIAN = "uk"
+    ARABIC = "ar"
+    HINDI = "hi"
+    THAI = "th"
+    VIETNAMESE = "vi"
+    INDONESIAN = "id"
+
+    @classmethod
+    def from_string(cls, lang_str: str) -> Language:
+        """Convierte string a Language, con normalización."""
+        normalized = lang_str.lower().strip()
+
+        # Mapeo de códigos comunes
+        lang_map = {
+            "es": cls.SPANISH,
+            "spa": cls.SPANISH,
+            "spanish": cls.SPANISH,
+            "español": cls.SPANISH,
+            "en": cls.ENGLISH,
+            "eng": cls.ENGLISH,
+            "english": cls.ENGLISH,
+            "fr": cls.FRENCH,
+            "fra": cls.FRENCH,
+            "french": cls.FRENCH,
+            "français": cls.FRENCH,
+            "de": cls.GERMAN,
+            "deu": cls.GERMAN,
+            "german": cls.GERMAN,
+            "deutsch": cls.GERMAN,
+            "it": cls.ITALIAN,
+            "ita": cls.ITALIAN,
+            "italian": cls.ITALIAN,
+            "italiano": cls.ITALIAN,
+            "pt": cls.PORTUGUESE,
+            "por": cls.PORTUGUESE,
+            "portuguese": cls.PORTUGUESE,
+            "português": cls.PORTUGUESE,
+            "ru": cls.RUSSIAN,
+            "rus": cls.RUSSIAN,
+            "russian": cls.RUSSIAN,
+            "ja": cls.JAPANESE,
+            "jpn": cls.JAPANESE,
+            "japanese": cls.JAPANESE,
+            "ko": cls.KOREAN,
+            "kor": cls.KOREAN,
+            "korean": cls.KOREAN,
+            "zh": cls.CHINESE_SIMPLIFIED,
+            "zho": cls.CHINESE_SIMPLIFIED,
+            "chinese": cls.CHINESE_SIMPLIFIED,
+            "zh-tw": cls.CHINESE_TRADITIONAL,
+            "nl": cls.DUTCH,
+            "nld": cls.DUTCH,
+            "dutch": cls.DUTCH,
+            "pl": cls.POLISH,
+            "pol": cls.POLISH,
+            "polish": cls.POLISH,
+        }
+
+        return lang_map.get(normalized, cls.SPANISH)  # Default to Spanish
+
+
 class TranslationSource(str, Enum):
     """Fuentes de traducción disponibles."""
 
@@ -77,7 +165,8 @@ class GameInfo(BaseModel):
 
     # Información básica
     platforms: list[Platform] = Field(
-        default_factory=list, description="Plataformas disponibles",
+        default_factory=list,
+        description="Plataformas disponibles",
     )
     release_date: datetime | None = Field(None, description="Fecha de lanzamiento")
     developer: str | None = Field(None, description="Desarrollador")
@@ -86,28 +175,46 @@ class GameInfo(BaseModel):
 
     # Descripciones
     short_description_en: str | None = Field(
-        None, description="Descripción corta en inglés",
+        None,
+        description="Descripción corta en inglés",
     )
     # Compat: aceptar `description` en tests y exponer alias
     description: str | None = Field(
-        None, description="Alias para short_description_en (compat)",
+        None,
+        description="Alias para short_description_en (compat)",
     )
     short_description_es: str | None = Field(
-        None, description="Descripción corta en español",
+        None,
+        description="Descripción corta en español",
     )
     detailed_description_en: str | None = Field(
-        None, description="Descripción detallada en inglés",
+        None,
+        description="Descripción detallada en inglés",
     )
     detailed_description_es: str | None = Field(
-        None, description="Descripción detallada en español",
+        None,
+        description="Descripción detallada en español",
+    )
+
+    # Descripciones traducidas (almacena traducciones en diferentes idiomas)
+    # Formato: {"fr": "description en francés", "de": "description en alemán", ...}
+    translated_descriptions: dict[str, str] = Field(
+        default_factory=dict,
+        description="Descripciones traducidas por idioma (código ISO)",
     )
 
     # Metadatos
     metacritic_score: int | None = Field(
-        None, ge=0, le=100, description="Puntuación Metacritic",
+        None,
+        ge=0,
+        le=100,
+        description="Puntuación Metacritic",
     )
     user_score: float | None = Field(
-        None, ge=0, le=10, description="Puntuación de usuarios",
+        None,
+        ge=0,
+        le=10,
+        description="Puntuación de usuarios",
     )
     price: float | None = Field(None, ge=0, description="Precio en USD")
     is_free: bool = Field(False, description="¿Es gratuito?")
@@ -119,17 +226,23 @@ class GameInfo(BaseModel):
 
     # Metadatos de traducción
     translation_source: TranslationSource | None = Field(
-        None, description="Fuente de la traducción",
+        None,
+        description="Fuente de la traducción",
     )
     translation_confidence: float | None = Field(
-        None, ge=0, le=1, description="Confianza en la traducción",
+        None,
+        ge=0,
+        le=1,
+        description="Confianza en la traducción",
     )
     last_updated: datetime = Field(
-        default_factory=datetime.now, description="Última actualización",
+        default_factory=datetime.now,
+        description="Última actualización",
     )
     # Fuente de los datos brutos (por ejemplo 'rawg', 'steam') - usado en tests
     source_api: str | None = Field(
-        None, description="Fuente original de datos (rawg, steam, ...)",
+        None,
+        description="Fuente original de datos (rawg, steam, ...)",
     )
 
     @validator("platforms", pre=True)
@@ -153,6 +266,58 @@ class GameInfo(BaseModel):
     def has_spanish_description(self) -> bool:
         """Verifica si tiene descripción en español."""
         return bool(self.short_description_es or self.detailed_description_es)
+
+    def has_description(self, lang: Language | str) -> bool:
+        """Verifica si tiene descripción en el idioma especificado."""
+        if isinstance(lang, str):
+            lang = Language.from_string(lang)
+
+        lang_code = lang.value
+
+        # Verificar campos específicos de español
+        if lang_code == "es":
+            return self.has_spanish_description()
+
+        # Verificar en translated_descriptions
+        return lang_code in self.translated_descriptions
+
+    def get_description(self, lang: Language | str) -> str | None:
+        """Obtiene la descripción en el idioma especificado."""
+        if isinstance(lang, str):
+            lang = Language.from_string(lang)
+
+        lang_code = lang.value
+
+        # Casos especiales para español e inglés (campos legacy)
+        if lang_code == "es":
+            return self.get_best_description_es()
+        if lang_code == "en":
+            return self.get_best_description_en()
+
+        # Buscar en translated_descriptions
+        return self.translated_descriptions.get(lang_code)
+
+    def set_description(self, lang: Language | str, description: str) -> None:
+        """Establece la descripción en el idioma especificado."""
+        if isinstance(lang, str):
+            lang = Language.from_string(lang)
+
+        lang_code = lang.value
+
+        # Casos especiales para español e inglés (campos legacy)
+        if lang_code == "es":
+            if not self.short_description_es:
+                self.short_description_es = description
+            else:
+                self.detailed_description_es = description
+        elif lang_code == "en":
+            if not self.short_description_en:
+                self.short_description_en = description
+            else:
+                self.detailed_description_en = description
+        else:
+            # Guardar en translated_descriptions
+            self.translated_descriptions[lang_code] = description
 
     @validator("short_description_en", pre=True, always=True)
     def _populate_short_description_from_description(cls, v: Any, values: Any) -> Any:
@@ -192,7 +357,9 @@ class TranslationResult(BaseModel):
 
     # Metadatos de proceso
     processing_time_ms: int = Field(
-        ..., ge=0, description="Tiempo de procesamiento en ms",
+        ...,
+        ge=0,
+        description="Tiempo de procesamiento en ms",
     )
     apis_used: list[str] = Field(default_factory=list, description="APIs utilizadas")
     cache_hit: bool = Field(False, description="¿Resultado desde caché?")
@@ -203,7 +370,8 @@ class TranslationResult(BaseModel):
 
     # Timestamp
     timestamp: datetime = Field(
-        default_factory=datetime.now, description="Momento de la traducción",
+        default_factory=datetime.now,
+        description="Momento de la traducción",
     )
 
     def add_error(self, error: str) -> None:
