@@ -119,7 +119,10 @@ class CacheError(GameTranslatorError):
     """Error relacionado con el sistema de caché."""
 
     def __init__(
-        self, message: str, operation: str, details: dict[str, str] | None = None,
+        self,
+        message: str,
+        operation: str,
+        details: dict[str, str] | None = None,
     ) -> None:
         super().__init__(message, details)
         self.operation = operation

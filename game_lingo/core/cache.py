@@ -105,7 +105,8 @@ class Cache:
 
         except sqlite3.Error as e:
             raise CacheError(
-                f"Failed to initialize cache database: {e}", operation="initialize",
+                f"Failed to initialize cache database: {e}",
+                operation="initialize",
             )
 
     async def get(self, key: str) -> TranslationResult | None:

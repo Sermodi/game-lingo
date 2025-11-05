@@ -23,7 +23,8 @@ class APIResponse(BaseModel):
     status_code: int = Field(..., description="Código de estado HTTP")
     response_time_ms: int = Field(..., ge=0, description="Tiempo de respuesta en ms")
     timestamp: datetime = Field(
-        default_factory=datetime.now, description="Timestamp de la respuesta",
+        default_factory=datetime.now,
+        description="Timestamp de la respuesta",
     )
     raw_data: dict[str, Any] | None = Field(None, description="Datos crudos de la API")
     error_message: str | None = Field(None, description="Mensaje de error si aplica")
@@ -43,17 +44,20 @@ class SteamResponse(APIResponse):
     developers: list[str] = Field(default_factory=list, description="Desarrolladores")
     publishers: list[str] = Field(default_factory=list, description="Distribuidores")
     platforms: list[str] = Field(
-        default_factory=list, description="Plataformas soportadas",
+        default_factory=list,
+        description="Plataformas soportadas",
     )
     categories: list[str] = Field(default_factory=list, description="Categorías")
     genres: list[str] = Field(default_factory=list, description="Géneros")
     screenshots: list[str] = Field(
-        default_factory=list, description="URLs de capturas de pantalla",
+        default_factory=list,
+        description="URLs de capturas de pantalla",
     )
     movies: list[str] = Field(default_factory=list, description="URLs de videos")
     release_date: str | None = Field(None, description="Fecha de lanzamiento")
     price_overview: dict[str, Any] | None = Field(
-        None, description="Información de precio",
+        None,
+        description="Información de precio",
     )
     metacritic_score: int | None = Field(None, description="Puntuación de Metacritic")
     is_free: bool = Field(False, description="¿Es gratuito?")
@@ -70,18 +74,22 @@ class RAWGResponse(APIResponse):
     background_image: str | None = Field(None, description="Imagen de fondo")
     website: str | None = Field(None, description="Sitio web oficial")
     developers: list[dict[str, Any]] = Field(
-        default_factory=list, description="Desarrolladores",
+        default_factory=list,
+        description="Desarrolladores",
     )
     publishers: list[dict[str, Any]] = Field(
-        default_factory=list, description="Distribuidores",
+        default_factory=list,
+        description="Distribuidores",
     )
     platforms: list[dict[str, Any]] = Field(
-        default_factory=list, description="Plataformas",
+        default_factory=list,
+        description="Plataformas",
     )
     genres: list[dict[str, Any]] = Field(default_factory=list, description="Géneros")
     tags: list[dict[str, Any]] = Field(default_factory=list, description="Etiquetas")
     screenshots: list[dict[str, str]] = Field(
-        default_factory=list, description="Capturas",
+        default_factory=list,
+        description="Capturas",
     )
     released: str | None = Field(None, description="Fecha de lanzamiento")
     metacritic: int | None = Field(None, description="Puntuación Metacritic")
@@ -97,10 +105,14 @@ class TranslationAPIResponse(APIResponse):
     source_language: str = Field(..., description="Idioma origen")
     target_language: str = Field(..., description="Idioma destino")
     confidence: float | None = Field(
-        None, ge=0, le=1, description="Confianza en la traducción",
+        None,
+        ge=0,
+        le=1,
+        description="Confianza en la traducción",
     )
     provider: str = Field(..., description="Proveedor de traducción")
     characters_used: int = Field(..., ge=0, description="Caracteres utilizados")
     detected_language: str | None = Field(
-        None, description="Idioma detectado automáticamente",
+        None,
+        description="Idioma detectado automáticamente",
     )

@@ -3,7 +3,7 @@ Tests para el módulo game_lingo.
 
 Estructura de tests:
 - test_steam_api.py: Tests para Steam Store API
-- test_rawg_api.py: Tests para RAWG API  
+- test_rawg_api.py: Tests para RAWG API
 - test_deepl_api.py: Tests para DeepL API
 - test_google_translate_api.py: Tests para Google Translate API
 - test_translator.py: Tests para el traductor principal

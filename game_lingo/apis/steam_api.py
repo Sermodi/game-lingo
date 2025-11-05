@@ -308,7 +308,9 @@ class SteamAPI:
             return None
 
     def _find_best_match(
-        self, query: str, results: List[Dict[str, Any]],
+        self,
+        query: str,
+        results: List[Dict[str, Any]],
     ) -> Dict[str, Any] | None:
         """Encuentra la mejor coincidencia en los resultados de búsqueda."""
         if not results:
@@ -503,7 +505,9 @@ class SteamAPI:
 
         if response.status >= 500:
             raise APIError(
-                f"Steam API server error: {response.status}", "steam", response.status,
+                f"Steam API server error: {response.status}",
+                "steam",
+                response.status,
             )
 
         if response.status >= 400:
