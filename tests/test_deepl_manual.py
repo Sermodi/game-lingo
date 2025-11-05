@@ -35,10 +35,10 @@ def test_usage_info():
 
             print(f"✅ Caracteres usados: {usage.character_count:,}")
             print(f"✅ Límite de caracteres: {usage.character_limit:,}")
-            print(f"✅ Porcentaje de uso: {usage.usage_percentage:.2f}%")
+            print(f"[OK] Porcentaje de uso: {usage.usage_percentage:.2f}%")
 
             if usage.usage_percentage > 80:
-                print("⚠️  Advertencia: Cerca del límite de caracteres")
+                print("[WARN] Advertencia: Cerca del límite de caracteres")
 
             return True
 
@@ -277,10 +277,10 @@ def run_all_tests():
             success = test_func()
             results.append((test_name, success))
         except KeyboardInterrupt:
-            print("\n⚠️ Tests interrumpidos por el usuario")
+            print("\n[!] Tests interrumpidos por el usuario")
             break
         except Exception as e:
-            print(f"❌ Error inesperado en {test_name}: {e}")
+            print(f"[ERROR] Error inesperado en {test_name}: {e}")
             results.append((test_name, False))
 
     # Resumen
@@ -298,10 +298,10 @@ def run_all_tests():
     print(f"\nResultado: {passed}/{total} tests pasaron")
 
     if passed == total:
-        print("🎉 ¡Todos los tests pasaron!")
+        print("[OK] ¡Todos los tests pasaron!")
         return True
     else:
-        print("⚠️ Algunos tests fallaron")
+        print("[WARN] Algunos tests fallaron")
         return False
 
 
@@ -319,7 +319,7 @@ def interactive_mode():
                     break
 
                 if not text:
-                    print("⚠️ Por favor, ingresa un texto")
+                    print("[!] Por favor, ingresa un texto")
                     continue
 
                 target_lang = (

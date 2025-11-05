@@ -201,7 +201,7 @@ def test_convenience_functions(api_key: str) -> None:
 
 def test_error_handling(connector: GoogleTranslateAPIConnector) -> None:
     """Test manejo de errores."""
-    print("\n⚠️ Probando manejo de errores...")
+    print("\n[!] Probando manejo de errores...")
 
     # Test texto vacío
     try:
