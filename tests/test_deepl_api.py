@@ -7,14 +7,14 @@ from unittest.mock import Mock, patch, MagicMock
 import requests
 from requests.exceptions import Timeout, ConnectionError
 
-from game_translator.apis.deepl_api import (
+from game_lingo.apis.deepl_api import (
     DeepLAPIConnector,
     DeepLUsage,
     DeepLLanguage,
     TranslationResult,
     translate_game_description
 )
-from game_translator.exceptions import (
+from game_lingo.exceptions import (
     APIError,
     RateLimitError,
     AuthenticationError,
@@ -85,7 +85,7 @@ class TestDeepLAPIConnector:
     @pytest.fixture
     def mock_settings(self):
         """Mock de configuraciones."""
-        with patch('game_translator.apis.deepl_api.settings') as mock:
+        with patch('game_lingo.apis.deepl_api.settings') as mock:
             mock.DEEPL_API_KEY = "test_api_key"
             mock.DEEPL_IS_PRO = False
             mock.TRANSLATION_TIMEOUT_SECONDS = 30
@@ -98,19 +98,19 @@ class TestDeepLAPIConnector:
     @pytest.fixture
     def connector(self, mock_settings):
         """Fixture del conector DeepL."""
-        with patch('game_translator.apis.deepl_api.DeepLAPIConnector._create_session'):
+        with patch('game_lingo.apis.deepl_api.DeepLAPIConnector._create_session'):
             return DeepLAPIConnector(api_key="test_key")
     
     def test_init_with_api_key(self, mock_settings):
         """Test inicialización con API key."""
-        with patch('game_translator.apis.deepl_api.DeepLAPIConnector._create_session'):
+        with patch('game_lingo.apis.deepl_api.DeepLAPIConnector._create_session'):
             connector = DeepLAPIConnector(api_key="custom_key")
             assert connector.api_key == "custom_key"
             assert connector.base_url == "https://api-free.deepl.com/v2"
     
     def test_init_pro_account(self, mock_settings):
         """Test inicialización con cuenta Pro."""
-        with patch('game_translator.apis.deepl_api.DeepLAPIConnector._create_session'):
+        with patch('game_lingo.apis.deepl_api.DeepLAPIConnector._create_session'):
             connector = DeepLAPIConnector(api_key="pro_key", is_pro=True)
             assert connector.base_url == "https://api.deepl.com/v2"
     
@@ -314,7 +314,7 @@ class TestDeepLAPIConnector:
 class TestConvenienceFunctions:
     """Tests para funciones de conveniencia."""
     
-    @patch('game_translator.apis.deepl_api.DeepLAPIConnector')
+    @patch('game_lingo.apis.deepl_api.DeepLAPIConnector')
     def test_translate_game_description_function(self, mock_connector_class):
         """Test función de conveniencia para traducir descripción."""
         mock_connector = Mock()

@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch, MagicMock
 from requests.exceptions import RequestException, Timeout, ConnectionError
 from requests import Response
 
-from game_translator.apis.google_translate_api import (
+from game_lingo.apis.google_translate_api import (
     GoogleTranslateAPIConnector,
     GoogleTranslateLanguage,
     GoogleTranslateDetection,
@@ -29,7 +29,7 @@ from game_translator.apis.google_translate_api import (
     TranslationError,
     ValidationError,
 )
-from game_translator.models.game import GameInfo
+from game_lingo.models.game import GameInfo
 
 
 class TestGoogleTranslateLanguage:
@@ -334,7 +334,7 @@ class TestGoogleTranslateAPIConnector:
 class TestConvenienceFunctions:
     """Tests para las funciones de conveniencia."""
 
-    @patch('game_translator.apis.google_translate_api.GoogleTranslateAPIConnector')
+    @patch('game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector')
     def test_translate_game_description_function(self, mock_connector_class):
         """Test función de conveniencia translate_game_description."""
         mock_connector = Mock()
@@ -355,7 +355,7 @@ class TestConvenienceFunctions:
             game, target_language="es"
         )
 
-    @patch('game_translator.apis.google_translate_api.GoogleTranslateAPIConnector')
+    @patch('game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector')
     def test_detect_language_function(self, mock_connector_class):
         """Test función de conveniencia detect_language."""
         mock_connector = Mock()

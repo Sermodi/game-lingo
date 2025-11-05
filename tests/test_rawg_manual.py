@@ -18,8 +18,8 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
-from game_translator.apis.rawg_api import RAWGAPIConnector, search_rawg_game
-from game_translator.exceptions import APIError, GameNotFoundError, RateLimitError, AuthenticationError
+from game_lingo.apis.rawg_api import RAWGAPIConnector, search_rawg_game
+from game_lingo.exceptions import APIError, GameNotFoundError, RateLimitError, AuthenticationError
 
 
 # Configurar logging

@@ -22,7 +22,7 @@ from pathlib import Path
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
-from game_translator.apis.google_translate_api import (
+from game_lingo.apis.google_translate_api import (
     GoogleTranslateAPIConnector,
     translate_game_description,
     detect_language,
@@ -31,7 +31,7 @@ from game_translator.apis.google_translate_api import (
     TranslationError,
     ValidationError,
 )
-from game_translator.models.game import GameInfo
+from game_lingo.models.game import GameInfo
 
 
 def load_api_key() -> str:
