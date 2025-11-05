@@ -383,7 +383,9 @@ class RateLimiter:
             limit.request_times.popleft()
 
     def _cleanup_character_window(
-        self, limit: APIRateLimit, current_time: float,
+        self,
+        limit: APIRateLimit,
+        current_time: float,
     ) -> None:
         """Limpia uso de caracteres fuera de la ventana actual."""
         if not limit.character_window_seconds:
@@ -439,7 +441,8 @@ class RateLimiter:
                     if api_name in self.api_limits:
                         limit = self.api_limits[api_name]
                         limit.consecutive_errors = api_state.get(
-                            "consecutive_errors", 0,
+                            "consecutive_errors",
+                            0,
                         )
                         limit.backoff_until = api_state.get("backoff_until", 0.0)
 

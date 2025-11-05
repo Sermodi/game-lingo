@@ -234,7 +234,9 @@ class RAWGAPIConnector:
             raise APIError(f"Unexpected error getting RAWG details: {e}", "rawg")
 
     async def find_game_by_name(
-        self, name: str, exact_match: bool = False,
+        self,
+        name: str,
+        exact_match: bool = False,
     ) -> Optional[GameInfo]:
         """
         Busca un juego específico por nombre y devuelve GameInfo.
@@ -308,7 +310,8 @@ class RAWGAPIConnector:
         # Extraer información básica
         name = rawg_data.get("name", "Unknown")
         description = rawg_data.get("description_raw", "") or rawg_data.get(
-            "description", "",
+            "description",
+            "",
         )
 
         # Limpiar HTML si existe
@@ -391,7 +394,9 @@ class RAWGAPIConnector:
 
         if response.status >= 500:
             raise APIError(
-                f"RAWG API server error: {response.status}", "rawg", response.status,
+                f"RAWG API server error: {response.status}",
+                "rawg",
+                response.status,
             )
 
         if response.status >= 400:
@@ -444,7 +449,8 @@ class RAWGAPIConnector:
 
 # Función de conveniencia para uso directo
 async def search_rawg_game(
-    query: str, api_key: Optional[str] = None,
+    query: str,
+    api_key: Optional[str] = None,
 ) -> Optional[GameInfo]:
     """
     Función de conveniencia para buscar un juego en RAWG.

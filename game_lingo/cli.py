@@ -187,7 +187,9 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
-def print_game_result(result: Any, show_full: bool = False, target_lang: str = "es") -> None:
+def print_game_result(
+    result: Any, show_full: bool = False, target_lang: str = "es"
+) -> None:
     """Imprime el resultado de búsqueda de un juego de forma formateada."""
     game = result.game_info
 
@@ -308,7 +310,8 @@ async def cmd_search(args: argparse.Namespace) -> int:
     except GameNotFoundError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         print(
-            "   Intenta con otro nombre o sin especificar plataforma.", file=sys.stderr,
+            "   Intenta con otro nombre o sin especificar plataforma.",
+            file=sys.stderr,
         )
         return 1
 
@@ -370,7 +373,9 @@ async def cmd_describe(args: argparse.Namespace) -> int:
             # Si tiene descripción nativa en el idioma destino, usarla
             if result.game_info.has_description(target_lang):
                 print(f"✅ Encontrada descripción nativa en {target_lang.value}")
-                print_game_result(result, show_full=args.full, target_lang=target_lang.value)
+                print_game_result(
+                    result, show_full=args.full, target_lang=target_lang.value
+                )
                 return 0
             print(
                 f"⚠️  No hay descripción nativa en {target_lang.value}, traduciendo la proporcionada...",
