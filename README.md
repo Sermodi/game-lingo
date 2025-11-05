@@ -436,4 +436,5 @@ MIT License - ver [LICENSE](LICENSE) para detalles.
 - **Steam**: Por su API pública y datos de calidad
 - **RAWG**: Por su extensa base de datos de juegos
 - **DeepL**: Por traducciones de alta calidad
-- **Google**: Por su servicio de traducción robusto
+- **Google**: Por su servicio de traducción robustot e s t  
+ 
