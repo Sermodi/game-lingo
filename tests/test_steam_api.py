@@ -14,10 +14,10 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 
-from game_translator.apis.steam_api import SteamAPI
-from game_translator.exceptions import APIError, GameNotFoundError, RateLimitError
-from game_translator.models.api_response import SteamResponse
-from game_translator.models.game import GameInfo, Platform
+from game_lingo.apis.steam_api import SteamAPI
+from game_lingo.exceptions import APIError, GameNotFoundError, RateLimitError
+from game_lingo.models.api_response import SteamResponse
+from game_lingo.models.game import GameInfo, Platform
 
 
 class TestSteamAPI:

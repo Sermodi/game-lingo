@@ -1,5 +1,5 @@
 """
-Tests para el módulo game_translator.
+Tests para el módulo game_lingo.
 
 Estructura de tests:
 - test_steam_api.py: Tests para Steam Store API

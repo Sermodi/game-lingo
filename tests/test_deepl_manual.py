@@ -16,11 +16,11 @@ from pathlib import Path
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
-from game_translator.apis.deepl_api import (
+from game_lingo.apis.deepl_api import (
     DeepLAPIConnector,
     translate_game_description
 )
-from game_translator.exceptions import (
+from game_lingo.exceptions import (
     APIError,
     AuthenticationError,
     TranslationError,

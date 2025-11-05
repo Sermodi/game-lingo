@@ -14,9 +14,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 from aiohttp import ClientResponse
 
-from game_translator.apis.rawg_api import RAWGAPIConnector, RAWGResponse
-from game_translator.models.game_info import GameInfo
-from game_translator.exceptions import (
+from game_lingo.apis.rawg_api import RAWGAPIConnector, RAWGResponse
+from game_lingo.models.game_info import GameInfo
+from game_lingo.exceptions import (
     APIError, 
     RateLimitError, 
     GameNotFoundError, 
@@ -78,7 +78,7 @@ class TestRAWGAPIConnector:
     @pytest.fixture
     def connector(self, mock_session):
         """Conector RAWG con sesión mock."""
-        with patch('game_translator.apis.rawg_api.settings') as mock_settings:
+        with patch('game_lingo.apis.rawg_api.settings') as mock_settings:
             mock_settings.RAWG_API_KEY = "test_api_key"
             mock_settings.RAWG_BASE_URL = "https://api.rawg.io/api"
             mock_settings.API_TIMEOUT_SECONDS = 30
@@ -90,7 +90,7 @@ class TestRAWGAPIConnector:
     
     def test_init_without_api_key(self):
         """Test inicialización sin API key."""
-        with patch('game_translator.apis.rawg_api.settings') as mock_settings:
+        with patch('game_lingo.apis.rawg_api.settings') as mock_settings:
             mock_settings.RAWG_API_KEY = ""
             
             with pytest.raises(AuthenticationError) as exc_info:
@@ -101,7 +101,7 @@ class TestRAWGAPIConnector:
     
     def test_init_with_api_key(self):
         """Test inicialización con API key."""
-        with patch('game_translator.apis.rawg_api.settings') as mock_settings:
+        with patch('game_lingo.apis.rawg_api.settings') as mock_settings:
             mock_settings.RAWG_BASE_URL = "https://api.rawg.io/api"
             
             connector = RAWGAPIConnector(api_key="test_key")
