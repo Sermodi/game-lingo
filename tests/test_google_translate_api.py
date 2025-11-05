@@ -147,9 +147,13 @@ class TestGoogleTranslateAPIConnector:
         # sleep_time = 0.2 - 0.1 = 0.1
         mock_sleep.assert_called_once_with(0.1)
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.get")
-    def test_make_request_success(self, mock_get, mock_rate_limit, connector, mock_response):
+    def test_make_request_success(
+        self, mock_get, mock_rate_limit, connector, mock_response
+    ):
         """Test petición exitosa."""
         mock_response.json.return_value = {"data": {"languages": []}}
         mock_get.return_value = mock_response
@@ -157,9 +161,13 @@ class TestGoogleTranslateAPIConnector:
         result = connector._make_request("languages", method="GET")
         assert result.json() == {"data": {"languages": []}}
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.get")
-    def test_make_request_authentication_error(self, mock_get, mock_rate_limit, connector):
+    def test_make_request_authentication_error(
+        self, mock_get, mock_rate_limit, connector
+    ):
         """Test error de autenticación (401)."""
         mock_response = Mock(spec=Response)
         mock_response.status_code = 401
@@ -170,7 +178,9 @@ class TestGoogleTranslateAPIConnector:
         with pytest.raises(Exception):
             connector._make_request("languages", method="GET")
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.get")
     def test_make_request_rate_limit_error(self, mock_get, mock_rate_limit, connector):
         """Test error de rate limit (429)."""
@@ -183,7 +193,9 @@ class TestGoogleTranslateAPIConnector:
         with pytest.raises(Exception):
             connector._make_request("languages", method="GET")
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.get")
     def test_make_request_timeout_error(self, mock_get, mock_rate_limit, connector):
         """Test error de timeout."""
@@ -192,7 +204,9 @@ class TestGoogleTranslateAPIConnector:
         with pytest.raises(APIError):
             connector._make_request("languages", method="GET")
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.get")
     def test_make_request_connection_error(self, mock_get, mock_rate_limit, connector):
         """Test error de conexión."""
@@ -241,7 +255,9 @@ class TestGoogleTranslateAPIConnector:
         assert detection.confidence == 0.95
         assert detection.is_reliable is True
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.post")
     def test_translate_text(self, mock_post, mock_rate_limit, connector, mock_response):
         """Test traducción de texto."""
@@ -260,9 +276,13 @@ class TestGoogleTranslateAPIConnector:
         assert result.detected_source_language == "en"
         assert result.target_language == "es"
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.post")
-    def test_translate_batch(self, mock_post, mock_rate_limit, connector, mock_response):
+    def test_translate_batch(
+        self, mock_post, mock_rate_limit, connector, mock_response
+    ):
         """Test traducción en lote."""
         mock_response.json.return_value = {
             "data": {
@@ -296,9 +316,13 @@ class TestGoogleTranslateAPIConnector:
         with pytest.raises(ValidationError):
             connector.translate_batch(["Hello"], target_language="")
 
-    @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit")
+    @patch(
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+    )
     @patch("requests.Session.post")
-    def test_translate_game_description(self, mock_post, mock_rate_limit, connector, mock_response):
+    def test_translate_game_description(
+        self, mock_post, mock_rate_limit, connector, mock_response
+    ):
         """Test traducción de descripción de juego."""
         mock_response.json.return_value = {
             "data": {
