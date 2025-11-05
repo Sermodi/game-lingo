@@ -105,7 +105,8 @@ class Cache:
 
         except sqlite3.Error as e:
             raise CacheError(
-                f"Failed to initialize cache database: {e}", operation="initialize",
+                f"Failed to initialize cache database: {e}",
+                operation="initialize",
             )
 
     async def get(self, key: str) -> TranslationResult | None:
@@ -157,7 +158,7 @@ class Cache:
                 if not row:
                     return None
 
-                value_blob, expires_at, compressed, access_count = row
+                value_blob, _expires_at, compressed, access_count = row
 
                 # Actualizar estadísticas de acceso
                 conn.execute(

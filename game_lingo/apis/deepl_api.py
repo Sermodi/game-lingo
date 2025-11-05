@@ -354,7 +354,8 @@ class DeepLAPIConnector:
 
         except Exception as e:
             if isinstance(
-                e, (APIError, AuthenticationError, RateLimitError, ValidationError),
+                e,
+                (APIError, AuthenticationError, RateLimitError, ValidationError),
             ):
                 raise
             raise APIError(
@@ -430,7 +431,8 @@ class DeepLAPIConnector:
                 try:
                     asyncio.run(
                         self.rate_limiter.wait_if_needed(
-                            "deepl", character_count=len(text),
+                            "deepl",
+                            character_count=len(text),
                         ),
                     )
                 except RuntimeError:
@@ -438,7 +440,8 @@ class DeepLAPIConnector:
                     loop = asyncio.get_event_loop()
                     loop.run_until_complete(
                         self.rate_limiter.wait_if_needed(
-                            "deepl", character_count=len(text),
+                            "deepl",
+                            character_count=len(text),
                         ),
                     )
 

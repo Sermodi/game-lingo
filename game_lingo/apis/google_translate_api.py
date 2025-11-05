@@ -215,7 +215,10 @@ class GoogleTranslateAPIConnector:
                 response = self.session.get(url, params=params, timeout=self.timeout)
             else:
                 response = self.session.post(
-                    url, params=params, json=data, timeout=self.timeout,
+                    url,
+                    params=params,
+                    json=data,
+                    timeout=self.timeout,
                 )
 
             self._handle_response_errors(response)
@@ -305,7 +308,8 @@ class GoogleTranslateAPIConnector:
         )
 
     def get_supported_languages(
-        self, target_language: str = "en",
+        self,
+        target_language: str = "en",
     ) -> List[GoogleLanguage]:
         """
         Obtiene la lista de idiomas soportados.
@@ -392,7 +396,8 @@ class GoogleTranslateAPIConnector:
 
         except Exception as e:
             if isinstance(
-                e, (APIError, AuthenticationError, RateLimitError, ValidationError),
+                e,
+                (APIError, AuthenticationError, RateLimitError, ValidationError),
             ):
                 raise
             raise APIError(
@@ -461,7 +466,8 @@ class GoogleTranslateAPIConnector:
                 try:
                     asyncio.run(
                         self.rate_limiter.wait_if_needed(
-                            "google", character_count=len(text),
+                            "google",
+                            character_count=len(text),
                         ),
                     )
                 except RuntimeError:
@@ -469,13 +475,15 @@ class GoogleTranslateAPIConnector:
                     loop = asyncio.get_event_loop()
                     loop.run_until_complete(
                         self.rate_limiter.wait_if_needed(
-                            "google", character_count=len(text),
+                            "google",
+                            character_count=len(text),
                         ),
                     )
 
             logger.info(f"Translating text to {target_language} (length: {len(text)})")
             response = self._make_request(
-                "", data=data,
+                "",
+                data=data,
             )  # Endpoint vacío para translate
             result_data = response.json()
 
@@ -691,7 +699,8 @@ def translate_game_description(
             desc = getattr(game, "description", None)
             if not desc:
                 raise ValidationError(
-                    message="Game description cannot be empty", field="description",
+                    message="Game description cannot be empty",
+                    field="description",
                 )
             return connector.translate_game_description(desc, target_language)
         return connector.translate_game_description(description, target_language)

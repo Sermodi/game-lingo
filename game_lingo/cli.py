@@ -11,12 +11,12 @@ import asyncio
 import logging
 import os
 import sys
-from typing import NoReturn
+from typing import Any, NoReturn
 
 from . import __version__
 from .core.translator import GameDescriptionTranslator
 from .exceptions import GameNotFoundError, GameTranslatorError
-from .models.game import Platform
+from .models.game import Language, Platform
 
 # Configurar UTF-8 para Windows
 if sys.platform == "win32":
@@ -82,6 +82,13 @@ def setup_argparse() -> argparse.ArgumentParser:
         action="store_true",
         help="Mostrar descripción completa en lugar de la corta",
     )
+    search_parser.add_argument(
+        "-l",
+        "--target-lang",
+        type=str,
+        default="es",
+        help="Idioma destino (es, en, fr, de, ja, etc. - por defecto: es)",
+    )
 
     # Comando: translate
     translate_parser = subparsers.add_parser(
@@ -135,6 +142,13 @@ def setup_argparse() -> argparse.ArgumentParser:
         action="store_true",
         help="Mostrar descripción completa",
     )
+    describe_parser.add_argument(
+        "-l",
+        "--target-lang",
+        type=str,
+        default="es",
+        help="Idioma destino (es, en, fr, de, ja, etc. - por defecto: es)",
+    )
 
     # Comando: info
     info_parser = subparsers.add_parser(
@@ -145,6 +159,13 @@ def setup_argparse() -> argparse.ArgumentParser:
         "game_name",
         type=str,
         help="Nombre del juego",
+    )
+    info_parser.add_argument(
+        "-l",
+        "--target-lang",
+        type=str,
+        default="es",
+        help="Idioma destino (es, en, fr, de, ja, etc. - por defecto: es)",
     )
 
     # Comando: stats
@@ -166,7 +187,11 @@ def print_separator(char: str = "=", length: int = 70) -> None:
     print(char * length)
 
 
-def print_game_result(result: any, show_full: bool = False) -> None:
+def print_game_result(
+    result: Any,
+    show_full: bool = False,
+    target_lang: str = "es",
+) -> None:
     """Imprime el resultado de búsqueda de un juego de forma formateada."""
     game = result.game_info
 
@@ -202,14 +227,14 @@ def print_game_result(result: any, show_full: bool = False) -> None:
 
     print()
 
-    # Descripción
-    description = None
-    if show_full:
-        description = game.detailed_description_es or game.detailed_description_en
-        desc_type = "Descripción Completa"
-    else:
-        description = game.short_description_es or game.short_description_en
-        desc_type = "Descripción"
+    # Descripción en el idioma solicitado
+    description = game.get_description(target_lang)
+
+    # Fallback a inglés si no hay descripción en el idioma destino
+    if not description:
+        description = game.get_best_description_en()
+
+    desc_type = "Descripción Completa" if show_full else "Descripción"
 
     if description:
         print(f"{desc_type}:")
@@ -228,7 +253,7 @@ def print_game_result(result: any, show_full: bool = False) -> None:
     print_separator()
 
 
-def print_translation_result(result: any) -> None:
+def print_translation_result(result: Any) -> None:
     """Imprime el resultado de traducción de forma formateada."""
     print_separator()
     print("📝 Traducción")
@@ -266,23 +291,29 @@ async def cmd_search(args: argparse.Namespace) -> int:
         if args.platform:
             platform = Platform(args.platform.upper())
 
+        # Obtener idioma destino
+        target_lang = Language.from_string(args.target_lang)
+
         print(f"\n🔍 Buscando '{args.game_name}'...")
         if platform:
             print(f"   Plataforma: {platform.value}")
+        print(f"   Idioma destino: {target_lang.value}")
         print()
 
         result = await translator.translate_game_description(
             game_identifier=args.game_name,
             platform=platform,
+            target_lang=target_lang,
         )
 
-        print_game_result(result, show_full=args.full)
+        print_game_result(result, show_full=args.full, target_lang=target_lang.value)
         return 0
 
     except GameNotFoundError as e:
         print(f"\n❌ Error: {e}", file=sys.stderr)
         print(
-            "   Intenta con otro nombre o sin especificar plataforma.", file=sys.stderr,
+            "   Intenta con otro nombre o sin especificar plataforma.",
+            file=sys.stderr,
         )
         return 1
 
@@ -327,25 +358,31 @@ async def cmd_describe(args: argparse.Namespace) -> int:
     try:
         translator = GameDescriptionTranslator()
 
+        # Obtener idioma destino
+        target_lang = Language.from_string(args.target_lang)
+
         print(f"\n🔍 Buscando '{args.game_name}' con descripción proporcionada...")
+        print(f"   Idioma destino: {target_lang.value}")
         print()
 
         # Primero intentar buscar el juego
         try:
             result = await translator.translate_game_description(
                 game_identifier=args.game_name,
+                target_lang=target_lang,
             )
 
-            # Si tiene descripción nativa en español, usarla
-            if (
-                result.game_info.short_description_es
-                or result.game_info.detailed_description_es
-            ):
-                print("✅ Encontrada descripción nativa en español")
-                print_game_result(result, show_full=args.full)
+            # Si tiene descripción nativa en el idioma destino, usarla
+            if result.game_info.has_description(target_lang):
+                print(f"✅ Encontrada descripción nativa en {target_lang.value}")
+                print_game_result(
+                    result,
+                    show_full=args.full,
+                    target_lang=target_lang.value,
+                )
                 return 0
             print(
-                "⚠️  No hay descripción nativa en español, traduciendo la proporcionada...",
+                f"⚠️  No hay descripción nativa en {target_lang.value}, traduciendo la proporcionada...",
             )
             print()
         except GameNotFoundError:
@@ -358,6 +395,7 @@ async def cmd_describe(args: argparse.Namespace) -> int:
         translation_result = await translator.translate_description(
             english_description=args.description,
             game_name=args.game_name,
+            target_lang=target_lang,
         )
 
         # Mostrar resultado
@@ -366,10 +404,7 @@ async def cmd_describe(args: argparse.Namespace) -> int:
         print_separator()
         print()
 
-        description = (
-            translation_result.game_info.short_description_es
-            or translation_result.game_info.detailed_description_es
-        )
+        description = translation_result.game_info.get_description(target_lang)
         if description:
             print("Descripción (traducida):")
             print(description)
@@ -404,14 +439,19 @@ async def cmd_info(args: argparse.Namespace) -> int:
     try:
         translator = GameDescriptionTranslator()
 
+        # Obtener idioma destino
+        target_lang = Language.from_string(args.target_lang)
+
         print(f"\n🔍 Obteniendo información de '{args.game_name}'...")
+        print(f"   Idioma destino: {target_lang.value}")
         print()
 
         result = await translator.translate_game_description(
             game_identifier=args.game_name,
+            target_lang=target_lang,
         )
 
-        print_game_result(result, show_full=True)
+        print_game_result(result, show_full=True, target_lang=target_lang.value)
         return 0
 
     except GameNotFoundError as e:

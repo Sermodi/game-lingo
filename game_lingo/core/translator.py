@@ -17,7 +17,13 @@ from ..apis import DeepLAPI, GoogleTranslateAPI, SteamAPI
 from ..apis.rawg_api import RAWGAPIConnector
 from ..config import settings
 from ..exceptions import GameNotFoundError, ValidationError
-from ..models.game import GameInfo, Platform, TranslationResult, TranslationSource
+from ..models.game import (
+    GameInfo,
+    Language,
+    Platform,
+    TranslationResult,
+    TranslationSource,
+)
 from .cache import Cache
 from .rate_limiter import RateLimiter
 
@@ -97,6 +103,7 @@ class GameDescriptionTranslator:
         game_identifier: str | None = None,
         english_description: str | None = None,
         platform: Platform | str | None = None,
+        target_lang: Language | str = Language.SPANISH,
         force_refresh: bool = False,
     ) -> TranslationResult:
         """
@@ -106,6 +113,7 @@ class GameDescriptionTranslator:
             game_identifier: Nombre del juego, Steam ID, o identificador (opcional si se proporciona descripción)
             english_description: Descripción en inglés (opcional, si se proporciona se usa directamente)
             platform: Plataforma específica (opcional)
+            target_lang: Idioma destino para la traducción (default: Spanish)
             force_refresh: Forzar actualización ignorando caché
 
         Returns:
@@ -130,6 +138,10 @@ class GameDescriptionTranslator:
         if isinstance(platform, str):
             platform = Platform.from_string(platform)
 
+        # Normalizar idioma destino
+        if isinstance(target_lang, str):
+            target_lang = Language.from_string(target_lang)
+
         # Crear resultado inicial
         result = TranslationResult(
             game_info=GameInfo(name=game_identifier),
@@ -147,7 +159,7 @@ class GameDescriptionTranslator:
                     short_description_en=english_description,
                 )
                 # Procesar traducción directamente
-                await self._process_translation(game_info, result)
+                await self._process_translation(game_info, result, target_lang)
                 result.game_info = game_info
                 result.success = True
                 result.processing_time_ms = int((time.time() - start_time) * 1000)
@@ -165,16 +177,19 @@ class GameDescriptionTranslator:
 
             # Estrategia de búsqueda híbrida
             game_info = await self._search_game_hybrid(
-                game_identifier, platform, result,
+                game_identifier,
+                platform,
+                result,
             )
 
             if not game_info:
                 raise GameNotFoundError(
-                    game_identifier, str(platform) if platform else None,
+                    game_identifier,
+                    str(platform) if platform else None,
                 )
 
             # Procesar traducción si es necesario
-            await self._process_translation(game_info, result)
+            await self._process_translation(game_info, result, target_lang)
 
             # Actualizar resultado
             result.game_info = game_info
@@ -198,6 +213,7 @@ class GameDescriptionTranslator:
         self,
         english_description: str,
         game_name: str | None = None,
+        target_lang: Language | str = Language.SPANISH,
     ) -> TranslationResult:
         """
         Traduce una descripción en inglés directamente, sin buscar el juego.
@@ -205,6 +221,7 @@ class GameDescriptionTranslator:
         Args:
             english_description: Descripción en inglés a traducir
             game_name: Nombre del juego (opcional, para referencia)
+            target_lang: Idioma destino para la traducción (default: Spanish)
 
         Returns:
             TranslationResult con la traducción
@@ -215,6 +232,7 @@ class GameDescriptionTranslator:
         return await self.translate_game_description(
             game_identifier=game_name or "Unknown Game",
             english_description=english_description,
+            target_lang=target_lang,
             force_refresh=True,
         )
 
@@ -260,33 +278,35 @@ class GameDescriptionTranslator:
         return game_info
 
     async def _process_translation(
-        self, game_info: GameInfo, result: TranslationResult,
+        self,
+        game_info: GameInfo,
+        result: TranslationResult,
+        target_lang: Language,
     ) -> None:
         """Procesa la traducción si es necesaria."""
-        if game_info.has_spanish_description():
-            # Ya tiene descripción en español
+        # Verificar si ya tiene descripción en el idioma destino
+        if game_info.has_description(target_lang):
+            # Ya tiene descripción nativa en el idioma destino
             result.source = TranslationSource.NATIVE
             result.confidence = 1.0
             return
 
-        # Necesita traducción
+        # Necesita traducción desde inglés
         english_description = game_info.get_best_description_en()
         if not english_description:
             result.add_warning("No English description available for translation")
             return
 
-        # Intentar traducción
+        # Intentar traducción al idioma destino
         translated_text, provider, confidence = await self._translate_text(
             english_description,
+            target_lang,
             result,
         )
 
         if translated_text:
-            # Actualizar con traducción
-            if game_info.detailed_description_en and not game_info.short_description_en:
-                game_info.detailed_description_es = translated_text
-            else:
-                game_info.short_description_es = translated_text
+            # Guardar traducción usando el método helper
+            game_info.set_description(target_lang, translated_text)
 
             game_info.translation_source = TranslationSource(provider)
             game_info.translation_confidence = confidence
@@ -295,12 +315,13 @@ class GameDescriptionTranslator:
             result.confidence = confidence
 
             logger.info(
-                f"Translated description using {provider} (confidence: {confidence})",
+                f"Translated description to {target_lang.value} using {provider} (confidence: {confidence})",
             )
 
     async def _translate_text(
         self,
         text: str,
+        target_lang: Language,
         result: TranslationResult,
     ) -> tuple[str | None, str, float]:
         """
@@ -308,19 +329,27 @@ class GameDescriptionTranslator:
 
         Las APIs de traducción son síncronas, así que las ejecutamos en un thread.
 
+        Args:
+            text: Texto a traducir (siempre en inglés)
+            target_lang: Idioma destino
+            result: Objeto resultado para tracking
+
         Returns:
             Tuple de (texto_traducido, proveedor_usado, confianza)
         """
         providers = self._get_translation_providers()
+        target_code = target_lang.value
 
         for provider_name in providers:
             try:
                 if provider_name == "deepl" and self.deepl_api:
+                    # DeepL usa códigos en mayúsculas (ES, FR, DE, etc.)
+                    deepl_target = target_code.upper()
                     # DeepL API es síncrona, ejecutar en thread
                     translation_result = await asyncio.to_thread(
                         self.deepl_api.translate_text,
                         text=text,
-                        target_language="ES",
+                        target_language=deepl_target,
                         source_language="EN",
                     )
                     result.add_api_used("deepl")
@@ -328,11 +357,12 @@ class GameDescriptionTranslator:
                     return translation_result.text, "deepl", confidence
 
                 if provider_name == "google" and self.google_api:
+                    # Google usa códigos en minúsculas (es, fr, de, etc.)
                     # Google Translate API es síncrona, ejecutar en thread
                     translation_result = await asyncio.to_thread(
                         self.google_api.translate_text,
                         text=text,
-                        target_language="es",
+                        target_language=target_code,
                         source_language="en",
                     )
                     result.add_api_used("google")
@@ -374,7 +404,9 @@ class GameDescriptionTranslator:
         return platform in steam_platforms
 
     def _validate_input(
-        self, game_identifier: str, platform: Platform | str | None,
+        self,
+        game_identifier: str,
+        platform: Platform | str | None,
     ) -> None:
         """Valida parámetros de entrada."""
         if not game_identifier or not game_identifier.strip():
@@ -425,14 +457,18 @@ class GameDescriptionTranslator:
         await self.cache.set(cache_key, result)
 
     def _generate_cache_key(
-        self, game_identifier: str, platform: Platform | None,
+        self,
+        game_identifier: str,
+        platform: Platform | None,
     ) -> str:
         """Genera clave única para caché."""
         platform_str = platform.value if platform else "any"
         return f"game:{game_identifier.lower()}:platform:{platform_str}"
 
     async def _search_steam(
-        self, game_identifier: str, result: TranslationResult,
+        self,
+        game_identifier: str,
+        result: TranslationResult,
     ) -> GameInfo | None:
         """Busca juego en Steam API."""
         if not self.steam_api:
@@ -443,7 +479,8 @@ class GameDescriptionTranslator:
             async with SteamAPI(rate_limiter=self.rate_limiter) as steam:
                 result.add_api_used("steam")
                 game_info = await steam.find_game_by_name(
-                    game_identifier, language="spanish",
+                    game_identifier,
+                    language="spanish",
                 )
                 if game_info:
                     logger.info(f"Found game in Steam: {game_info.name}")
@@ -467,7 +504,8 @@ class GameDescriptionTranslator:
             async with self.rawg_api as rawg:
                 result.add_api_used("rawg")
                 game_info = await rawg.find_game_by_name(
-                    game_identifier, exact_match=False,
+                    game_identifier,
+                    exact_match=False,
                 )
                 if game_info:
                     logger.info(f"Found game in RAWG: {game_info.name}")

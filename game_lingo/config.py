@@ -28,7 +28,9 @@ class Settings:
         default="https://translation.googleapis.com/language/translate/v2",
     )
     GOOGLE_TRANSLATE_REQUESTS_PER_SECOND: int = config(
-        "GOOGLE_TRANSLATE_REQUESTS_PER_SECOND", default=10, cast=int,
+        "GOOGLE_TRANSLATE_REQUESTS_PER_SECOND",
+        default=10,
+        cast=int,
     )
 
     # API URLs
@@ -41,7 +43,9 @@ class Settings:
     DEEPL_API_URL: str = "https://api-free.deepl.com/v2/translate"
     DEEPL_IS_PRO: bool = config("DEEPL_IS_PRO", default=False, cast=bool)
     DEEPL_REQUESTS_PER_SECOND: int = config(
-        "DEEPL_REQUESTS_PER_SECOND", default=5, cast=int,
+        "DEEPL_REQUESTS_PER_SECOND",
+        default=5,
+        cast=int,
     )
     GOOGLE_TRANSLATE_API_URL: str = (
         "https://translation.googleapis.com/language/translate/v2"
@@ -58,7 +62,8 @@ class Settings:
     DEFAULT_TARGET_LANGUAGE: str = config("DEFAULT_TARGET_LANGUAGE", default="es")
     TRANSLATION_PROVIDER: str = config("TRANSLATION_PROVIDER", default="deepl")
     FALLBACK_TRANSLATION_PROVIDER: str = config(
-        "FALLBACK_TRANSLATION_PROVIDER", default="google",
+        "FALLBACK_TRANSLATION_PROVIDER",
+        default="google",
     )
 
     # Rate Limiting
@@ -73,19 +78,25 @@ class Settings:
     # Character Limits for Translation APIs
     DEEPL_CHARACTER_LIMIT: int = config("DEEPL_CHARACTER_LIMIT", default=694, cast=int)
     GOOGLE_CHARACTER_LIMIT: int = config(
-        "GOOGLE_CHARACTER_LIMIT", default=10000, cast=int,
+        "GOOGLE_CHARACTER_LIMIT",
+        default=10000,
+        cast=int,
     )
 
     # Timeouts
     API_TIMEOUT_SECONDS: int = config("API_TIMEOUT_SECONDS", default=30, cast=int)
     TRANSLATION_TIMEOUT_SECONDS: int = config(
-        "TRANSLATION_TIMEOUT_SECONDS", default=60, cast=int,
+        "TRANSLATION_TIMEOUT_SECONDS",
+        default=60,
+        cast=int,
     )
 
     # Retry Configuration
     MAX_RETRIES: int = config("MAX_RETRIES", default=3, cast=int)
     RETRY_BACKOFF_FACTOR: float = config(
-        "RETRY_BACKOFF_FACTOR", default=1.5, cast=float,
+        "RETRY_BACKOFF_FACTOR",
+        default=1.5,
+        cast=float,
     )
 
     # Logging Configuration
