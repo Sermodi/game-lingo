@@ -130,13 +130,16 @@ class TestDeepLAPIConnector:
     @patch("time.time")
     def test_rate_limiting(self, mock_time, mock_sleep, connector):
         """Test rate limiting."""
-        mock_time.side_effect = [0, 0.1, 0.3]  # Simular tiempos
-        connector._last_request_time = 0
-        connector._min_request_interval = 0.2
+        # time.time() se llama 2 veces: al inicio y al final
+        mock_time.side_effect = [0.1, 0.3]  # current_time = 0.1, luego 0.3
+        connector._last_request_time = 0  # last_request_time = 0
+        connector._min_request_interval = 0.2  # min_interval = 0.2
 
         connector._rate_limit()
 
-        mock_sleep.assert_called_once_with(0.1)  # 0.2 - 0.1 = 0.1
+        # time_since_last = 0.1 - 0 = 0.1
+        # sleep_time = 0.2 - 0.1 = 0.1 (pero el sleep real es 0.2)
+        mock_sleep.assert_called_once_with(0.2 - 0.1)
 
     def test_handle_response_errors_success(self, connector):
         """Test manejo de respuesta exitosa."""
