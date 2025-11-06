@@ -88,8 +88,10 @@ class TestRAWGAPIConnector:
             # Crear un mock para el rate_limiter
             mock_rate_limiter = AsyncMock()
             mock_rate_limiter.wait_if_needed = AsyncMock()
-            
-            connector = RAWGAPIConnector(api_key="test_api_key", rate_limiter=mock_rate_limiter)
+
+            connector = RAWGAPIConnector(
+                api_key="test_api_key", rate_limiter=mock_rate_limiter
+            )
             connector.session = mock_session
             return connector
 
@@ -291,11 +293,16 @@ class TestRAWGAPIConnector:
         assert result.name == "Grand Theft Auto V"
         assert result.source_api == "rawg"
         assert result.rawg_id == 3498
-        assert any(p.lower() == "pc" for p in result.platforms)  # Verificar que 'pc' está en las plataformas (case-insensitive)
+        assert any(
+            p.lower() == "pc" for p in result.platforms
+        )  # Verificar que 'pc' está en las plataformas (case-insensitive)
         assert result.genres == ["Action"]
         assert result.developer == "Rockstar North"
         assert result.publisher == "Rockstar Games"
-        assert result.short_description_en == "An action-adventure game set in Los Santos..."
+        assert (
+            result.short_description_en
+            == "An action-adventure game set in Los Santos..."
+        )
         assert result.screenshots == ["https://example.com/screenshot1.jpg"]
 
     @pytest.mark.asyncio
@@ -346,8 +353,8 @@ class TestRAWGAPIConnector:
         assert result.release_date.month == 9
         assert result.release_date.day == 17
         assert len(result.platforms) == 2
-        assert any(p.value == 'pc' for p in result.platforms)
-        assert any(p.value == 'ps4' for p in result.platforms)
+        assert any(p.value == "pc" for p in result.platforms)
+        assert any(p.value == "ps4" for p in result.platforms)
         assert set(result.genres) == {"Action", "Adventure"}
         assert result.developer == "Rockstar North"
         assert result.publisher == "Rockstar Games"

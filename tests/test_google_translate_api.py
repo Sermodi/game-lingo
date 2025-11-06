@@ -388,8 +388,7 @@ class TestConvenienceFunctions:
         assert result == "Hola mundo"
         # La función llama a translate_game_description con argumentos posicionales
         mock_connector.translate_game_description.assert_called_once_with(
-            description,
-            "es"
+            description, "es"
         )
 
     @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector")
