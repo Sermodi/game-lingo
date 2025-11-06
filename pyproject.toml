@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "game-lingo"
-version = "0.3.2"
+version = "0.3.3"
 description = "Multi-language video game description translator with smart API orchestration"
 authors = ["Sermodi <sermodsoftware@gmail.com>"]
 readme = "README.md"
