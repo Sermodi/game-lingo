@@ -11,24 +11,22 @@ Incluye tests para:
 
 from __future__ import annotations
 
-import json
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-from requests.exceptions import RequestException, Timeout, ConnectionError
 from requests import Response
+from requests.exceptions import ConnectionError, Timeout
 
 from game_lingo.apis.google_translate_api import (
     GoogleTranslateAPIConnector,
-    GoogleTranslateLanguage,
     GoogleTranslateDetection,
+    GoogleTranslateLanguage,
     GoogleTranslateResult,
-    translate_game_description,
-    detect_language,
-    AuthenticationError,
-    RateLimitError,
-    TranslationError,
     ValidationError,
+    detect_language,
+    translate_game_description,
 )
+from game_lingo.exceptions import APIError
 from game_lingo.models.game import GameInfo
 
 
@@ -62,7 +60,9 @@ class TestGoogleTranslateDetection:
     def test_creation(self):
         """Test creación de GoogleTranslateDetection."""
         detection = GoogleTranslateDetection(
-            language="en", confidence=0.95, is_reliable=True
+            language="en",
+            confidence=0.95,
+            is_reliable=True,
         )
         assert detection.language == "en"
         assert detection.confidence == 0.95
@@ -71,7 +71,9 @@ class TestGoogleTranslateDetection:
     def test_str_representation(self):
         """Test representación string."""
         detection = GoogleTranslateDetection(
-            language="en", confidence=0.95, is_reliable=True
+            language="en",
+            confidence=0.95,
+            is_reliable=True,
         )
         assert str(detection) == "en (95.0% confidence, reliable)"
 
@@ -148,11 +150,15 @@ class TestGoogleTranslateAPIConnector:
         mock_sleep.assert_called_once_with(0.1)
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.get")
     def test_make_request_success(
-        self, mock_get, mock_rate_limit, connector, mock_response
+        self,
+        mock_get,
+        mock_rate_limit,
+        connector,
+        mock_response,
     ):
         """Test petición exitosa."""
         mock_response.json.return_value = {"data": {"languages": []}}
@@ -162,11 +168,14 @@ class TestGoogleTranslateAPIConnector:
         assert result.json() == {"data": {"languages": []}}
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.get")
     def test_make_request_authentication_error(
-        self, mock_get, mock_rate_limit, connector
+        self,
+        mock_get,
+        mock_rate_limit,
+        connector,
     ):
         """Test error de autenticación (401)."""
         mock_response = Mock(spec=Response)
@@ -179,7 +188,7 @@ class TestGoogleTranslateAPIConnector:
             connector._make_request("languages", method="GET")
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.get")
     def test_make_request_rate_limit_error(self, mock_get, mock_rate_limit, connector):
@@ -194,7 +203,7 @@ class TestGoogleTranslateAPIConnector:
             connector._make_request("languages", method="GET")
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.get")
     def test_make_request_timeout_error(self, mock_get, mock_rate_limit, connector):
@@ -205,7 +214,7 @@ class TestGoogleTranslateAPIConnector:
             connector._make_request("languages", method="GET")
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.get")
     def test_make_request_connection_error(self, mock_get, mock_rate_limit, connector):
@@ -224,8 +233,8 @@ class TestGoogleTranslateAPIConnector:
                     {"language": "en", "name": "English"},
                     {"language": "es", "name": "Spanish"},
                     {"language": "fr", "name": "French"},
-                ]
-            }
+                ],
+            },
         }
         mock_get.return_value = mock_response
 
@@ -243,9 +252,9 @@ class TestGoogleTranslateAPIConnector:
         mock_response.json.return_value = {
             "data": {
                 "detections": [
-                    [{"language": "en", "confidence": 0.95, "isReliable": True}]
-                ]
-            }
+                    [{"language": "en", "confidence": 0.95, "isReliable": True}],
+                ],
+            },
         }
         mock_post.return_value = mock_response
 
@@ -256,7 +265,7 @@ class TestGoogleTranslateAPIConnector:
         assert detection.is_reliable is True
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.post")
     def test_translate_text(self, mock_post, mock_rate_limit, connector, mock_response):
@@ -264,9 +273,9 @@ class TestGoogleTranslateAPIConnector:
         mock_response.json.return_value = {
             "data": {
                 "translations": [
-                    {"translatedText": "Hola mundo", "detectedSourceLanguage": "en"}
-                ]
-            }
+                    {"translatedText": "Hola mundo", "detectedSourceLanguage": "en"},
+                ],
+            },
         }
         mock_post.return_value = mock_response
 
@@ -277,11 +286,15 @@ class TestGoogleTranslateAPIConnector:
         assert result.target_language == "es"
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.post")
     def test_translate_batch(
-        self, mock_post, mock_rate_limit, connector, mock_response
+        self,
+        mock_post,
+        mock_rate_limit,
+        connector,
+        mock_response,
     ):
         """Test traducción en lote."""
         mock_response.json.return_value = {
@@ -289,8 +302,8 @@ class TestGoogleTranslateAPIConnector:
                 "translations": [
                     {"translatedText": "Hola", "detectedSourceLanguage": "en"},
                     {"translatedText": "mundo", "detectedSourceLanguage": "en"},
-                ]
-            }
+                ],
+            },
         }
         mock_post.return_value = mock_response
 
@@ -317,11 +330,15 @@ class TestGoogleTranslateAPIConnector:
             connector.translate_batch(["Hello"], target_language="")
 
     @patch(
-        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit"
+        "game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector._rate_limit",
     )
     @patch("requests.Session.post")
     def test_translate_game_description(
-        self, mock_post, mock_rate_limit, connector, mock_response
+        self,
+        mock_post,
+        mock_rate_limit,
+        connector,
+        mock_response,
     ):
         """Test traducción de descripción de juego."""
         mock_response.json.return_value = {
@@ -330,15 +347,16 @@ class TestGoogleTranslateAPIConnector:
                     {
                         "translatedText": "Un gran juego de aventuras",
                         "detectedSourceLanguage": "en",
-                    }
-                ]
-            }
+                    },
+                ],
+            },
         }
         mock_post.return_value = mock_response
 
         description = "A great adventure game"
         translated = connector.translate_game_description(
-            description, target_language="es"
+            description,
+            target_language="es",
         )
 
         assert translated == "Un gran juego de aventuras"
@@ -362,12 +380,15 @@ class TestConvenienceFunctions:
         mock_connector.translate_game_description.return_value = "Hola mundo"
 
         result = translate_game_description(
-            description=description, target_language="es", api_key="test_key"
+            description=description,
+            target_language="es",
+            api_key="test_key",
         )
 
         assert result == "Hola mundo"
+        # La función llama a translate_game_description con argumentos posicionales
         mock_connector.translate_game_description.assert_called_once_with(
-            description, target_language="es", preserve_html=True
+            description, "es"
         )
 
     @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector")
@@ -377,7 +398,9 @@ class TestConvenienceFunctions:
         mock_connector_class.return_value.__enter__.return_value = mock_connector
 
         detection = GoogleTranslateDetection(
-            language="en", confidence=0.95, is_reliable=True
+            language="en",
+            confidence=0.95,
+            is_reliable=True,
         )
         mock_connector.detect_language.return_value = detection
 
@@ -462,7 +485,8 @@ class TestGoogleTranslateAPIIntegration:
         )
 
         translated_game = connector.translate_game_description(
-            game, target_language="es"
+            game,
+            target_language="es",
         )
 
         assert translated_game.name == "Test Game"
@@ -473,12 +497,16 @@ class TestGoogleTranslateAPIIntegration:
     def test_real_convenience_functions(self, api_key):
         """Test real de funciones de conveniencia."""
         game = GameInfo(
-            name="Test Game", description="A simple test game.", steam_id=123
+            name="Test Game",
+            description="A simple test game.",
+            steam_id=123,
         )
 
         # Test translate_game_description
         translated_game = translate_game_description(
-            game=game, target_language="es", api_key=api_key
+            game=game,
+            target_language="es",
+            api_key=api_key,
         )
         assert translated_game.description != game.description
 

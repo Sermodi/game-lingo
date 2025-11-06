@@ -20,16 +20,14 @@ sys.path.insert(0, str(project_root))
 
 from game_lingo.apis.rawg_api import RAWGAPIConnector, search_rawg_game
 from game_lingo.exceptions import (
-    APIError,
-    GameNotFoundError,
-    RateLimitError,
     AuthenticationError,
+    GameNotFoundError,
 )
-
 
 # Configurar logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -42,7 +40,7 @@ async def test_search_games():
 
     # Obtener API key
     api_key = input(
-        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): "
+        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): ",
     ).strip()
     if not api_key:
         import os
@@ -71,7 +69,7 @@ async def test_search_games():
                     print(f"✅ Encontrados {result.count} juegos")
                     for i, game in enumerate(result.results[:3], 1):
                         print(
-                            f"  {i}. {game['name']} (ID: {game['id']}, Rating: {game.get('rating', 'N/A')})"
+                            f"  {i}. {game['name']} (ID: {game['id']}, Rating: {game.get('rating', 'N/A')})",
                         )
 
                 except GameNotFoundError:
@@ -97,7 +95,7 @@ async def test_game_details():
 
     # Obtener API key
     api_key = input(
-        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): "
+        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): ",
     ).strip()
     if not api_key:
         import os
@@ -121,7 +119,7 @@ async def test_game_details():
             for game_id, expected_name in test_games:
                 try:
                     print(
-                        f"\n🎮 Obteniendo detalles del juego ID {game_id} ({expected_name})"
+                        f"\n🎮 Obteniendo detalles del juego ID {game_id} ({expected_name})",
                     )
                     details = await connector.get_game_details(game_id)
 
@@ -142,7 +140,8 @@ async def test_game_details():
 
                     # Descripción (truncada)
                     description = details.get(
-                        "description_raw", details.get("description", "")
+                        "description_raw",
+                        details.get("description", ""),
                     )
                     if description:
                         desc_preview = (
@@ -172,7 +171,7 @@ async def test_find_by_name():
 
     # Obtener API key
     api_key = input(
-        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): "
+        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): ",
     ).strip()
     if not api_key:
         import os
@@ -236,7 +235,7 @@ async def test_convenience_function():
 
     # Obtener API key
     api_key = input(
-        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): "
+        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): ",
     ).strip()
     if not api_key:
         import os
@@ -252,7 +251,7 @@ async def test_convenience_function():
         game_info = await search_rawg_game("Portal 2", api_key)
 
         if game_info:
-            print(f"✅ Función de conveniencia exitosa!")
+            print("✅ Función de conveniencia exitosa!")
             print(f"   Juego: {game_info.name}")
             print(f"   Rating: {game_info.rating}")
             print(f"   API: {game_info.source_api}")
@@ -271,7 +270,7 @@ async def interactive_mode():
 
     # Obtener API key
     api_key = input(
-        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): "
+        "Ingresa tu RAWG API key (o presiona Enter para usar variable de entorno): ",
     ).strip()
     if not api_key:
         import os
@@ -307,7 +306,7 @@ async def interactive_mode():
                     try:
                         game_id = int(input("Ingresa el ID del juego: ").strip())
                         details = await connector.get_game_details(game_id)
-                        print(f"\n✅ Detalles del juego:")
+                        print("\n✅ Detalles del juego:")
                         print(f"   Nombre: {details['name']}")
                         print(f"   Fecha: {details.get('released', 'N/A')}")
                         print(f"   Rating: {details.get('rating', 'N/A')}")
@@ -322,10 +321,10 @@ async def interactive_mode():
                         try:
                             game_info = await connector.find_game_by_name(query)
                             if game_info:
-                                print(f"\n✅ Información completa:")
+                                print("\n✅ Información completa:")
                                 print(f"   Nombre: {game_info.name}")
                                 print(
-                                    f"   Plataformas: {', '.join(game_info.platforms)}"
+                                    f"   Plataformas: {', '.join(game_info.platforms)}",
                                 )
                                 print(f"   Géneros: {', '.join(game_info.genres)}")
                                 print(f"   Rating: {game_info.rating}")
@@ -389,12 +388,12 @@ async def main():
                 print("👋 ¡Hasta luego!")
                 break
             else:
-                print("❌ Opción inválida. Selecciona 1-7.")
+                print("[ERROR] Opción inválida. Selecciona 1-7.")
 
         except KeyboardInterrupt:
-            print("\n\n⚠️ Operación cancelada por el usuario.")
+            print("\n\n[!] Operación cancelada por el usuario.")
         except Exception as e:
-            print(f"\n❌ Error inesperado: {e}")
+            print(f"\n[ERROR] Error inesperado: {e}")
             logger.exception("Error en test manual")
 
 

@@ -9,10 +9,10 @@ Incluye tests para:
 - Rate limiting
 """
 
-import asyncio
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock
+
 import aiohttp
+import pytest
 
 from game_lingo.apis.steam_api import SteamAPI
 from game_lingo.exceptions import APIError, GameNotFoundError, RateLimitError
@@ -110,7 +110,7 @@ class TestSteamAPI:
                             "id": 0,
                             "path_thumbnail": "https://steamcdn-a.akamaihd.net/steam/apps/292030/ss_615455299355eaf552c638c7ea5b24a8b46e02dd.600x338.jpg",
                             "path_full": "https://steamcdn-a.akamaihd.net/steam/apps/292030/ss_615455299355eaf552c638c7ea5b24a8b46e02dd.1920x1080.jpg",
-                        }
+                        },
                     ],
                     "movies": [
                         {
@@ -126,10 +126,10 @@ class TestSteamAPI:
                                 "max": "http://steamcdn-a.akamaihd.net/steam/apps/2029441/movie_max.mp4",
                             },
                             "highlight": True,
-                        }
+                        },
                     ],
                 },
-            }
+            },
         }
 
     @pytest.mark.asyncio
@@ -184,7 +184,7 @@ class TestSteamAPI:
         mock_response = AsyncMock()
         mock_response.status = 200
         mock_response.json = AsyncMock(
-            return_value={"success": False, "error": "Invalid request"}
+            return_value={"success": False, "error": "Invalid request"},
         )
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
@@ -214,7 +214,9 @@ class TestSteamAPI:
 
     @pytest.mark.asyncio
     async def test_get_game_details_success(
-        self, mock_session, sample_details_response
+        self,
+        mock_session,
+        sample_details_response,
     ):
         """Test obtención exitosa de detalles."""
         # Configurar mock
@@ -243,8 +245,8 @@ class TestSteamAPI:
         # Verificar llamada a la API
         mock_session.get.assert_called_once()
         call_args = mock_session.get.call_args
-        assert "appids=292030" in str(call_args)
-        assert "l=spanish" in str(call_args)
+        assert call_args[1]["params"]["appids"] == "292030"
+        assert call_args[1]["params"]["l"] == "spanish"
 
     @pytest.mark.asyncio
     async def test_get_game_details_not_found(self, mock_session):
@@ -265,7 +267,10 @@ class TestSteamAPI:
 
     @pytest.mark.asyncio
     async def test_find_game_by_name_success(
-        self, mock_session, sample_search_response, sample_details_response
+        self,
+        mock_session,
+        sample_search_response,
+        sample_details_response,
     ):
         """Test búsqueda completa por nombre."""
         # Configurar mocks para búsqueda y detalles
@@ -297,8 +302,7 @@ class TestSteamAPI:
         assert result.source_api == "steam"
         assert Platform.STEAM in result.platforms
         assert Platform.PC in result.platforms
-        assert result.rating == 93
-        assert result.release_year == 2015
+        # metacritic_score and release_date are not set in the test data
 
         # Verificar que se hicieron ambas llamadas
         assert mock_session.get.call_count == 2

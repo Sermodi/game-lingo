@@ -374,6 +374,7 @@ class RAWGAPIConnector:
             metacritic_score=metacritic_score,
             screenshots=screenshots,
             translation_source=None,  # RAWG no traduce, solo proporciona datos
+            source_api="rawg",  # Establecer la fuente de los datos
         )
 
     async def _handle_response_errors(self, response: aiohttp.ClientResponse) -> None:

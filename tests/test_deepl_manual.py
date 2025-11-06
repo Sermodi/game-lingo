@@ -16,80 +16,76 @@ from pathlib import Path
 root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
-from game_lingo.apis.deepl_api import DeepLAPIConnector, translate_game_description
-from game_lingo.exceptions import (
-    APIError,
-    AuthenticationError,
-    TranslationError,
-    ValidationError,
-)
+import pytest
+import pytest_asyncio
+
+from game_lingo.apis.deepl_api import DeepLAPIConnector
+from game_lingo.exceptions import AuthenticationError, TranslationError, ValidationError
 
 
-def test_usage_info():
+# Fixture para el conector DeepL
+@pytest_asyncio.fixture
+async def deepl_connector():
+    api_key = os.getenv("DEEPL_API_KEY")
+    if not api_key:
+        pytest.skip("DEEPL_API_KEY environment variable not set")
+    async with DeepLAPIConnector(api_key=api_key) as connector:
+        yield connector
+
+
+@pytest.mark.asyncio
+async def test_usage_info(deepl_connector):
     """Test obtener información de uso de la API."""
-    print("\n=== Test: Información de Uso ===")
+    usage = await deepl_connector.get_usage()
 
-    try:
-        with DeepLAPIConnector() as connector:
-            usage = connector.get_usage()
+    assert hasattr(usage, "character_count")
+    assert hasattr(usage, "character_limit")
+    assert hasattr(usage, "character_percentage")
+    assert hasattr(usage, "character_limit_reached")
 
-            print(f"✅ Caracteres usados: {usage.character_count:,}")
-            print(f"✅ Límite de caracteres: {usage.character_limit:,}")
-            print(f"✅ Porcentaje de uso: {usage.usage_percentage:.2f}%")
+    print(f"✅ Caracteres usados: {usage.character_count:,}")
+    print(f"✅ Límite de caracteres: {usage.character_limit:,}")
+    print(f"✅ Porcentaje de uso: {usage.character_percentage}%")
+    if usage.character_percentage > 80:
+        print("[WARN] Advertencia: Cerca del límite de caracteres")
 
-            if usage.usage_percentage > 80:
-                print("⚠️  Advertencia: Cerca del límite de caracteres")
-
-            return True
-
-    except AuthenticationError as e:
-        print(f"❌ Error de autenticación: {e}")
-        return False
-    except APIError as e:
-        print(f"❌ Error de API: {e}")
-        return False
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+    # Verificaciones con aserciones
+    assert isinstance(usage.character_count, int), "character_count debe ser un entero"
+    assert isinstance(usage.character_limit, int), "character_limit debe ser un entero"
+    assert (
+        0 <= usage.character_percentage <= 100
+    ), "El porcentaje debe estar entre 0 y 100"
 
 
-def test_supported_languages():
+@pytest.mark.asyncio
+async def test_supported_languages(deepl_connector):
     """Test obtener idiomas soportados."""
-    print("\n=== Test: Idiomas Soportados ===")
+    # Obtener idiomas de origen
+    source_languages = await deepl_connector.get_source_languages()
 
-    try:
-        with DeepLAPIConnector() as connector:
-            # Idiomas de destino
-            target_languages = connector.get_supported_languages("target")
-            print(f"✅ Idiomas de destino disponibles: {len(target_languages)}")
+    # Obtener idiomas de destino
+    target_languages = await deepl_connector.get_target_languages()
 
-            # Mostrar algunos idiomas importantes
-            important_langs = ["ES", "EN", "FR", "DE", "IT", "PT"]
-            for lang in target_languages:
-                if lang.code in important_langs:
-                    formality = (
-                        " (soporta formalidad)" if lang.supports_formality else ""
-                    )
-                    print(f"   - {lang.code}: {lang.name}{formality}")
+    # Verificar que hay idiomas disponibles
+    assert len(source_languages) > 0
+    assert len(target_languages) > 0
 
-            # Idiomas de origen
-            source_languages = connector.get_supported_languages("source")
-            print(f"✅ Idiomas de origen disponibles: {len(source_languages)}")
+    # Verificar que los códigos de idioma son correctos
+    assert any(lang.code == "EN" for lang in source_languages)
+    assert any(lang.code == "ES" for lang in target_languages)
 
-            return True
+    print("\nIdiomas de origen soportados:")
+    for lang in source_languages[:5]:  # Mostrar solo los primeros 5 para no saturar
+        print(f"- {lang.name} ({lang.code})")
 
-    except APIError as e:
-        print(f"❌ Error de API: {e}")
-        return False
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+    print("\nIdiomas de destino soportados:")
+    for lang in target_languages[:5]:  # Mostrar solo los primeros 5 para no saturar
+        print(f"- {lang.name} ({lang.code})")
 
 
-def test_simple_translation():
+@pytest.mark.asyncio
+async def test_simple_translation(deepl_connector):
     """Test traducción simple."""
-    print("\n=== Test: Traducción Simple ===")
-
     test_texts = [
         ("Hello world", "ES"),
         ("Good morning", "ES"),
@@ -97,32 +93,23 @@ def test_simple_translation():
         ("How are you today?", "ES"),
     ]
 
-    try:
-        with DeepLAPIConnector() as connector:
-            for text, target_lang in test_texts:
-                result = connector.translate_text(text, target_lang)
+    for text, target_lang in test_texts:
+        result = await deepl_connector.translate_text(text, target_lang)
+        print(f"✅ '{text}' -> '{result.text}'")
 
-                print(f"✅ '{text}' -> '{result.text}'")
-                if result.detected_source_language:
-                    print(f"   Idioma detectado: {result.detected_source_language}")
+        # Verificaciones
+        assert result.text, "El texto traducido no debe estar vacío"
+        assert (
+            result.detected_source_language == "EN"
+        ), "El idioma de origen detectado debería ser inglés"
 
-            return True
-
-    except TranslationError as e:
-        print(f"❌ Error de traducción: {e}")
-        return False
-    except APIError as e:
-        print(f"❌ Error de API: {e}")
-        return False
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+        if result.detected_source_language:
+            print(f"   Idioma detectado: {result.detected_source_language}")
 
 
-def test_game_description_translation():
+@pytest.mark.asyncio
+async def test_game_description_translation(deepl_connector):
     """Test traducción de descripciones de juegos."""
-    print("\n=== Test: Traducción de Descripciones de Juegos ===")
-
     game_descriptions = [
         "An epic fantasy adventure game with stunning visuals and immersive gameplay.",
         "Build and manage your own city in this strategic simulation game.",
@@ -131,134 +118,105 @@ def test_game_description_translation():
         "Race through challenging tracks with realistic physics and dynamic weather.",
     ]
 
-    try:
-        with DeepLAPIConnector() as connector:
-            for i, description in enumerate(game_descriptions, 1):
-                print(f"\n--- Juego {i} ---")
-                print(f"Original: {description}")
+    for i, description in enumerate(game_descriptions, 1):
+        print(f"\n--- Juego {i} ---")
+        print(f"Original: {description}")
 
-                translated = connector.translate_game_description(description, "ES")
-                print(f"Traducido: {translated}")
+        translated = await deepl_connector.translate_game_description(description, "ES")
+        print(f"Traducido: {translated}")
 
-            return True
-
-    except TranslationError as e:
-        print(f"❌ Error de traducción: {e}")
-        return False
-    except ValidationError as e:
-        print(f"❌ Error de validación: {e}")
-        return False
-    except APIError as e:
-        print(f"❌ Error de API: {e}")
-        return False
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+        # Verificaciones
+        assert translated, "La descripción traducida no debe estar vacía"
+        assert (
+            len(translated) > len(description) * 0.7
+        ), "La traducción parece demasiado corta"
 
 
-def test_formality_levels():
+@pytest.mark.asyncio
+async def test_formality_levels(deepl_connector):
     """Test diferentes niveles de formalidad."""
-    print("\n=== Test: Niveles de Formalidad ===")
-
     text = "How are you doing today?"
     target_lang = "DE"  # Alemán soporta formalidad
-
     formality_levels = ["default", "more", "less"]
+    results = {}
 
-    try:
-        with DeepLAPIConnector() as connector:
-            print(f"Texto original: {text}")
-            print(f"Idioma destino: {target_lang}")
+    print(f"Texto original: {text}")
+    print(f"Idioma destino: {target_lang}")
 
-            for formality in formality_levels:
-                result = connector.translate_text(
-                    text, target_lang, formality=formality
-                )
-                print(f"✅ Formalidad '{formality}': {result.text}")
+    for formality in formality_levels:
+        result = await deepl_connector.translate_text(
+            text,
+            target_lang,
+            formality=formality,
+        )
+        results[formality] = result.text
+        print(f"✅ Formalidad '{formality}': {result.text}")
 
-            return True
-
-    except TranslationError as e:
-        print(f"❌ Error de traducción: {e}")
-        return False
-    except APIError as e:
-        print(f"❌ Error de API: {e}")
-        return False
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+    # Verificar que hay diferencias entre los niveles de formalidad
+    assert (
+        len(set(results.values())) > 1
+    ), "Los diferentes niveles de formalidad deberían producir traducciones diferentes"
 
 
-def test_convenience_function():
+@pytest.mark.asyncio
+async def test_convenience_function(deepl_connector):
     """Test función de conveniencia."""
-    print("\n=== Test: Función de Conveniencia ===")
-
     description = (
         "Embark on an epic journey through mystical lands filled with ancient secrets."
     )
 
-    try:
-        translated = translate_game_description(description, "ES")
+    print(f"Original: {description}")
+    translated = await deepl_connector.translate_game_description(description, "ES")
+    print(f"Traducido: {translated}")
 
-        print(f"Original: {description}")
-        print(f"✅ Traducido: {translated}")
+    # Verificaciones
+    assert translated, "La traducción no debe estar vacía"
+    assert (
+        len(translated) > len(description) * 0.7
+    ), "La traducción parece demasiado corta"
+    assert (
+        translated != description
+    ), "El texto traducido debe ser diferente al original"
 
-        return True
 
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return False
-
-
-def test_error_handling():
+@pytest.mark.asyncio
+async def test_error_handling():
     """Test manejo de errores."""
-    print("\n=== Test: Manejo de Errores ===")
+    # Test con API key inválida
+    print("\n1. Probando con API key inválida...")
+    connector = DeepLAPIConnector(api_key="invalid_key")
+    with pytest.raises(AuthenticationError):
+        await connector.get_usage()
+    print("[OK] Funcion de conveniencia funciono correctamente")
 
-    try:
-        with DeepLAPIConnector() as connector:
-            # Test texto vacío
-            try:
-                connector.translate_text("", "ES")
-                print("❌ Debería haber fallado con texto vacío")
-            except ValidationError:
-                print("✅ Error de validación capturado correctamente (texto vacío)")
+    # Test con idioma de destino inválido
+    print("\n2. Probando con idioma de destino inválido...")
+    connector = DeepLAPIConnector()
+    with pytest.raises(TranslationError):
+        await connector.translate_text("Hello", "XX")
+    print("[OK] Error de validacion manejado correctamente")
 
-            # Test idioma inválido
-            try:
-                connector.translate_text("Hello", "")
-                print("❌ Debería haber fallado con idioma vacío")
-            except ValidationError:
-                print("✅ Error de validación capturado correctamente (idioma vacío)")
-
-            # Test formalidad inválida
-            try:
-                connector.translate_text("Hello", "ES", formality="invalid")
-                print("❌ Debería haber fallado con formalidad inválida")
-            except ValidationError:
-                print(
-                    "✅ Error de validación capturado correctamente (formalidad inválida)"
-                )
-
-            return True
-
-    except Exception as e:
-        print(f"❌ Error inesperado: {e}")
-        return False
+    # Test con formalidad inválida
+    print("[OK] Traduccion exitosa con formalidad preferida")
+    connector = DeepLAPIConnector()
+    with pytest.raises(ValidationError):
+        await connector.translate_text("Hello", "ES", formality="invalid")
+    print("[OK] Error de validacion manejado correctamente")
 
 
 def run_all_tests():
     """Ejecuta todos los tests."""
-    print("🚀 Iniciando tests manuales de DeepL API")
+    print("=== Iniciando tests manuales de DeepL API ===")
     print("=" * 50)
 
     # Verificar API key
     api_key = os.getenv("DEEPL_API_KEY")
     if not api_key:
-        print("❌ Error: DEEPL_API_KEY no está configurada")
+        print(" Error: DEEPL_API_KEY no está configurada")
         print("Por favor, configura tu API key de DeepL en las variables de entorno")
         return False
 
-    print(f"✅ API Key configurada: {api_key[:8]}...")
+    print(f" API Key configurada: {api_key[:8]}...")
 
     tests = [
         ("Información de Uso", test_usage_info),
@@ -277,37 +235,36 @@ def run_all_tests():
             success = test_func()
             results.append((test_name, success))
         except KeyboardInterrupt:
-            print("\n⚠️ Tests interrumpidos por el usuario")
+            print("\n[!] Tests interrumpidos por el usuario")
             break
         except Exception as e:
-            print(f"❌ Error inesperado en {test_name}: {e}")
+            print(f"[ERROR] Error inesperado en {test_name}: {e}")
             results.append((test_name, False))
 
     # Resumen
     print("\n" + "=" * 50)
-    print("📊 RESUMEN DE TESTS")
+    print(" RESUMEN DE TESTS")
     print("=" * 50)
 
     passed = sum(1 for _, success in results if success)
     total = len(results)
 
     for test_name, success in results:
-        status = "✅ PASS" if success else "❌ FAIL"
+        status = " PASS" if success else " FAIL"
         print(f"{status} {test_name}")
 
     print(f"\nResultado: {passed}/{total} tests pasaron")
 
     if passed == total:
-        print("🎉 ¡Todos los tests pasaron!")
+        print("[OK] ¡Todos los tests pasaron!")
         return True
-    else:
-        print("⚠️ Algunos tests fallaron")
-        return False
+    print("[WARN] Algunos tests fallaron")
+    return False
 
 
 def interactive_mode():
     """Modo interactivo para probar traducciones."""
-    print("\n🔄 Modo Interactivo - DeepL API")
+    print("\n Modo Interactivo - DeepL API")
     print("Escribe 'quit' para salir")
     print("-" * 40)
 
@@ -319,7 +276,7 @@ def interactive_mode():
                     break
 
                 if not text:
-                    print("⚠️ Por favor, ingresa un texto")
+                    print("[!] Por favor, ingresa un texto")
                     continue
 
                 target_lang = (
@@ -330,17 +287,17 @@ def interactive_mode():
 
                 try:
                     result = connector.translate_text(text, target_lang)
-                    print(f"✅ Traducción: {result.text}")
+                    print(f" Traducción: {result.text}")
                     if result.detected_source_language:
                         print(f"   Idioma detectado: {result.detected_source_language}")
 
                 except Exception as e:
-                    print(f"❌ Error: {e}")
+                    print(f" Error: {e}")
 
     except KeyboardInterrupt:
-        print("\n👋 ¡Hasta luego!")
+        print("\n ¡Hasta luego!")
     except Exception as e:
-        print(f"❌ Error en modo interactivo: {e}")
+        print(f" Error en modo interactivo: {e}")
 
 
 if __name__ == "__main__":
@@ -348,7 +305,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Test manual de DeepL API")
     parser.add_argument(
-        "--interactive", "-i", action="store_true", help="Ejecutar en modo interactivo"
+        "--interactive",
+        "-i",
+        action="store_true",
+        help="Ejecutar en modo interactivo",
     )
 
     args = parser.parse_args()
