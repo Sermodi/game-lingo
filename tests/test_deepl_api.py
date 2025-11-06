@@ -2,22 +2,22 @@
 Tests unitarios para el conector DeepL API.
 """
 
+from unittest.mock import Mock, patch
+
 import pytest
-from unittest.mock import Mock, patch, MagicMock
-import requests
-from requests.exceptions import Timeout, ConnectionError
+from requests.exceptions import ConnectionError, Timeout
 
 from game_lingo.apis.deepl_api import (
     DeepLAPIConnector,
-    DeepLUsage,
     DeepLLanguage,
+    DeepLUsage,
     TranslationResult,
     translate_game_description,
 )
 from game_lingo.exceptions import (
     APIError,
-    RateLimitError,
     AuthenticationError,
+    RateLimitError,
     TranslationError,
     ValidationError,
 )
@@ -232,7 +232,8 @@ class TestDeepLAPIConnector:
         assert languages[0].code == "ES"
         assert languages[0].supports_formality is True
         connector._make_request.assert_called_once_with(
-            "languages", data={"type": "target"}
+            "languages",
+            data={"type": "target"},
         )
 
     def test_get_supported_languages_invalid_type(self, connector):
@@ -245,7 +246,7 @@ class TestDeepLAPIConnector:
         """Test traducción exitosa."""
         mock_response = Mock()
         mock_response.json.return_value = {
-            "translations": [{"text": "Hola mundo", "detected_source_language": "EN"}]
+            "translations": [{"text": "Hola mundo", "detected_source_language": "EN"}],
         }
 
         connector._make_request = Mock(return_value=mock_response)
@@ -290,15 +291,18 @@ class TestDeepLAPIConnector:
         """Test traducción de descripción de juego exitosa."""
         connector.translate_text = Mock(
             return_value=TranslationResult(
-                text="Descripción traducida", target_language="ES"
-            )
+                text="Descripción traducida",
+                target_language="ES",
+            ),
         )
 
         result = connector.translate_game_description("Game description")
 
         assert result == "Descripción traducida"
         connector.translate_text.assert_called_once_with(
-            text="Game description", target_language="ES", preserve_formatting=True
+            text="Game description",
+            target_language="ES",
+            preserve_formatting=True,
         )
 
     def test_translate_game_description_empty(self, connector):
@@ -323,7 +327,8 @@ class TestConvenienceFunctions:
         assert result == "Descripción traducida"
         mock_connector_class.assert_called_once_with(api_key="test_key")
         mock_connector.translate_game_description.assert_called_once_with(
-            "Game description", "ES"
+            "Game description",
+            "ES",
         )
 
 

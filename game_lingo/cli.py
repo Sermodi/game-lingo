@@ -577,7 +577,9 @@ async def cmd_stats(args: argparse.Namespace) -> int:
                             else 0
                         )
 
-                        print(f"   [Stats] Caracteres (ventana de {info['char_window']}):")
+                        print(
+                            f"   [Stats] Caracteres (ventana de {info['char_window']}):",
+                        )
                         print(
                             f"      En uso ahora: {chars_in_window:,}/{info['max_chars']:,} ({chars_percent:.1f}%)",
                         )
