@@ -245,8 +245,8 @@ class TestSteamAPI:
         # Verificar llamada a la API
         mock_session.get.assert_called_once()
         call_args = mock_session.get.call_args
-        assert call_args[1]['params']['appids'] == '292030'
-        assert call_args[1]['params']['l'] == 'spanish'
+        assert call_args[1]["params"]["appids"] == "292030"
+        assert call_args[1]["params"]["l"] == "spanish"
 
     @pytest.mark.asyncio
     async def test_get_game_details_not_found(self, mock_session):
