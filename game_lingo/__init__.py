@@ -20,6 +20,16 @@ Características:
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+from typing import Any, Dict
+
+# Importaciones estándar primero
+if sys.version_info >= (3, 11):
+    import tomllib
+else:
+    import tomli as tomllib
+
 from .core.translator import GameDescriptionTranslator
 from .exceptions import (
     APIError,
@@ -30,9 +40,27 @@ from .exceptions import (
 )
 from .models.game import GameInfo, Platform, TranslationResult
 
-__version__ = "0.2.0"
+# Constantes
 __author__ = "Sermodi"
 __email__ = "sermodsoftware@gmail.com"
+
+
+def _get_project_meta() -> Dict[str, Any]:
+    """Obtiene los metadatos del proyecto desde pyproject.toml."""
+    pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
+    
+    try:
+        with open(pyproject_path, "rb") as f:
+            pyproject = tomllib.load(f)
+        return pyproject.get("tool", {}).get("poetry", {})
+    except Exception as e:
+        print(f"Error al leer pyproject.toml: {e}", file=sys.stderr)
+        return {}
+
+
+# Obtener la versión del proyecto
+_project_meta = _get_project_meta()
+__version__ = _project_meta.get("version", "0.0.0")
 
 __all__ = [
     "APIError",
