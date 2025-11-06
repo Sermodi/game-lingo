@@ -115,7 +115,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "game_lingo/cli.py" = ["T201"]
-"tests/**/*.py" = ["PLR0913", "PLR0915", "S101"]
+"tests/**/*.py" = ["PLR0913", "PLR0915", "S101", "SLF001", "E402", "A004", "B017", "PT011", "F821", "SIM117"]
 "**/__init__.py" = ["F401"]
 
 [tool.mypy]
@@ -157,8 +157,11 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=game_lingo --cov-report=term-missing --cov-report=html"
+addopts = "-v --cov=game_lingo --cov-report=term-missing --cov-report=html"
 asyncio_mode = "auto"
+markers = [
+    'integration: mark test as integration test (deselect with "-m not integration")'
+]
 
 [tool.coverage.run]
 source = ["game_lingo"]

@@ -9,20 +9,21 @@ Incluye tests para:
 - Conversión de datos
 """
 
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import aiohttp
+import pytest
 from aiohttp import ClientResponse
 
 from game_lingo.apis.rawg_api import RAWGAPIConnector, RAWGResponse
-from game_lingo.models.game_info import GameInfo
 from game_lingo.exceptions import (
     APIError,
-    RateLimitError,
-    GameNotFoundError,
     AuthenticationError,
+    GameNotFoundError,
+    RateLimitError,
     ValidationError,
 )
+from game_lingo.models import GameInfo, Platform
 
 
 class TestRAWGResponse:
@@ -84,7 +85,11 @@ class TestRAWGAPIConnector:
             mock_settings.API_TIMEOUT_SECONDS = 30
             mock_settings.MAX_RETRIES = 3
 
-            connector = RAWGAPIConnector(api_key="test_api_key")
+            # Crear un mock para el rate_limiter
+            mock_rate_limiter = AsyncMock()
+            mock_rate_limiter.wait_if_needed = AsyncMock()
+            
+            connector = RAWGAPIConnector(api_key="test_api_key", rate_limiter=mock_rate_limiter)
             connector.session = mock_session
             return connector
 
@@ -123,15 +128,17 @@ class TestRAWGAPIConnector:
                     "name": "Grand Theft Auto V",
                     "rating": 4.47,
                     "released": "2013-09-17",
-                }
+                },
             ],
         }
 
         mock_session.get.return_value.__aenter__.return_value = mock_response
 
-        # Mock rate limiter
-        with patch.object(connector.rate_limiter, "acquire", new_callable=AsyncMock):
-            result = await connector.search_game("GTA V")
+        # Ejecutar la búsqueda (el rate_limiter ya está mockeado en el fixture)
+        result = await connector.search_game("GTA V")
+
+        # Verificar que se llamó al rate limiter
+        connector.rate_limiter.wait_if_needed.assert_called_once_with("rawg")
 
         # Verificaciones
         assert isinstance(result, RAWGResponse)
@@ -283,10 +290,13 @@ class TestRAWGAPIConnector:
         assert isinstance(result, GameInfo)
         assert result.name == "Grand Theft Auto V"
         assert result.source_api == "rawg"
-        assert result.external_id == "3498"
-        assert result.language == "en"
-        assert "PC" in result.platforms
-        assert "Action" in result.genres
+        assert result.rawg_id == 3498
+        assert any(p.lower() == "pc" for p in result.platforms)  # Verificar que 'pc' está en las plataformas (case-insensitive)
+        assert result.genres == ["Action"]
+        assert result.developer == "Rockstar North"
+        assert result.publisher == "Rockstar Games"
+        assert result.short_description_en == "An action-adventure game set in Los Santos..."
+        assert result.screenshots == ["https://example.com/screenshot1.jpg"]
 
     @pytest.mark.asyncio
     async def test_find_game_by_name_not_found(self, connector, mock_session):
@@ -330,18 +340,20 @@ class TestRAWGAPIConnector:
 
         assert isinstance(result, GameInfo)
         assert result.name == "Grand Theft Auto V"
-        assert result.description == "An action-adventure game..."
-        assert result.rating == 4.47
-        assert result.release_date == "2013-09-17"
-        assert result.platforms == ["PC", "PlayStation 4"]
-        assert result.genres == ["Action", "Adventure"]
-        assert result.developers == ["Rockstar North"]
-        assert result.publishers == ["Rockstar Games"]
+        assert result.short_description_en == "An action-adventure game..."
+        assert result.user_score == 4.47 * 2  # Convert from 5-point to 10-point scale
+        assert result.release_date.year == 2013
+        assert result.release_date.month == 9
+        assert result.release_date.day == 17
+        assert len(result.platforms) == 2
+        assert any(p.value == 'pc' for p in result.platforms)
+        assert any(p.value == 'ps4' for p in result.platforms)
+        assert set(result.genres) == {"Action", "Adventure"}
+        assert result.developer == "Rockstar North"
+        assert result.publisher == "Rockstar Games"
         assert result.metacritic_score == 97
         assert len(result.screenshots) == 2
         assert result.source_api == "rawg"
-        assert result.external_id == "3498"
-        assert result.language == "en"
 
     def test_clean_html(self, connector):
         """Test limpieza de HTML."""

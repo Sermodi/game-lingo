@@ -23,13 +23,13 @@ root_dir = Path(__file__).parent.parent
 sys.path.insert(0, str(root_dir))
 
 from game_lingo.apis.google_translate_api import (
-    GoogleTranslateAPIConnector,
-    translate_game_description,
-    detect_language,
     AuthenticationError,
+    GoogleTranslateAPIConnector,
     RateLimitError,
     TranslationError,
     ValidationError,
+    detect_language,
+    translate_game_description,
 )
 from game_lingo.models.game import GameInfo
 
@@ -109,7 +109,7 @@ def test_simple_translation(connector: GoogleTranslateAPIConnector) -> None:
         try:
             result = connector.translate_text(text, target_language=target_lang)
             print(
-                f"  🔄 '{text}' → '{result.translated_text}' ({result.detected_source_language} → {target_lang})"
+                f"  🔄 '{text}' → '{result.translated_text}' ({result.detected_source_language} → {target_lang})",
             )
         except Exception as e:
             print(f"  ❌ Error traduciendo '{text}': {e}")
@@ -161,10 +161,11 @@ def test_game_description_translation(connector: GoogleTranslateAPIConnector) ->
         for target_lang in target_languages:
             try:
                 translated_game = connector.translate_game_description(
-                    game, target_language=target_lang
+                    game,
+                    target_language=target_lang,
                 )
                 print(
-                    f"  🌍 {target_lang.upper()}: {translated_game.description[:100]}..."
+                    f"  🌍 {target_lang.upper()}: {translated_game.description[:100]}...",
                 )
             except Exception as e:
                 print(f"  ❌ Error traduciendo a {target_lang}: {e}")
@@ -190,9 +191,11 @@ def test_convenience_functions(api_key: str) -> None:
 
     try:
         translated_game = translate_game_description(
-            game=game, target_language="es", api_key=api_key
+            game=game,
+            target_language="es",
+            api_key=api_key,
         )
-        print(f"✅ Traducción de juego:")
+        print("✅ Traducción de juego:")
         print(f"  📝 Original: {game.description}")
         print(f"  🌍 Traducido: {translated_game.description}")
     except Exception as e:
@@ -295,7 +298,7 @@ def interactive_mode() -> None:
                             continue
 
                         target_lang = input(
-                            "🌍 Idioma objetivo (ej: es, fr, de): "
+                            "🌍 Idioma objetivo (ej: es, fr, de): ",
                         ).strip()
                         if not target_lang:
                             print("❌ El idioma objetivo no puede estar vacío")
@@ -303,11 +306,12 @@ def interactive_mode() -> None:
 
                         try:
                             result = connector.translate_text(
-                                text, target_language=target_lang
+                                text,
+                                target_language=target_lang,
                             )
                             print(f"🔄 Resultado: '{result.translated_text}'")
                             print(
-                                f"📊 Detectado: {result.detected_source_language} → {result.target_language}"
+                                f"📊 Detectado: {result.detected_source_language} → {result.target_language}",
                             )
                         except Exception as e:
                             print(f"❌ Error: {e}")
@@ -329,7 +333,7 @@ def interactive_mode() -> None:
                             languages = connector.get_supported_languages()
                             print(f"\n🌍 Idiomas soportados ({len(languages)}):")
                             for i, lang in enumerate(
-                                languages[:20]
+                                languages[:20],
                             ):  # Mostrar solo los primeros 20
                                 print(f"  {lang}")
                             if len(languages) > 20:
