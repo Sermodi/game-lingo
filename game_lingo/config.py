@@ -1,28 +1,107 @@
 """
 Configuración centralizada para Game Description Translator.
 
-Utiliza python-decouple para cargar variables de entorno de forma segura.
+Este módulo maneja la configuración de la aplicación, incluyendo claves API.
+Busca la configuración en el siguiente orden de prioridad:
+1. Variables de entorno
+2. Archivo de configuración del usuario (~/.config/game_lingo/config.ini)
 """
 
 from __future__ import annotations
 
+import configparser
 import logging
+import os
 from pathlib import Path
+from typing import Optional
 
 from decouple import config
 
+# Configuración de rutas
+CONFIG_DIR = Path.home() / ".config" / "game_lingo"
+CONFIG_FILE = CONFIG_DIR / "config.ini"
+
+# Crear el directorio de configuración si no existe
+CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+def get_config_value(section: str, key: str, default: str = "") -> str:
+    """
+    Obtiene un valor de configuración, primero de las variables de entorno,
+    luego del archivo de configuración, o devuelve el valor por defecto.
+    """
+    # Primero intentar con las variables de entorno
+    env_key = f"{section.upper()}_{key.upper()}"
+    value = os.environ.get(env_key)
+    if value is not None:
+        return value
+        
+    # Luego intentar con el archivo de configuración
+    config_parser = configparser.ConfigParser()
+    if CONFIG_FILE.exists():
+        config_parser.read(CONFIG_FILE)
+        return config_parser.get(section, key, fallback=default)
+    
+    return default
+
+
+def create_default_config():
+    """Crea un archivo de configuración por defecto si no existe."""
+    if not CONFIG_FILE.exists():
+        config_parser = configparser.ConfigParser()
+        
+        # Configuración de APIs
+        config_parser['API_KEYS'] = {
+            'steam': '',
+            'rawg': '',
+            'deepl': '',
+            'google_translate': ''
+        }
+        
+        # Configuración de la aplicación
+        config_parser['APP'] = {
+            'version': '1.0.0',
+            'cache_enabled': 'True',
+            'cache_ttl_hours': '24',
+            'default_source_language': 'en',
+            'default_target_language': 'es'
+        }
+        
+        with open(CONFIG_FILE, 'w') as configfile:
+            config_parser.write(configfile)
+        
+        return config_parser
+    return None
 
 class Settings:
     """Configuración de la aplicación."""
+
+    def __init__(self):
+        # Crear configuración por defecto si no existe
+        create_default_config()
+        
+        # Cargar configuración
+        self.config_parser = configparser.ConfigParser()
+        if CONFIG_FILE.exists():
+            self.config_parser.read(CONFIG_FILE)
 
     # Application Configuration
     VERSION: str = "1.0.0"
 
     # APIs Configuration
-    STEAM_API_KEY: str = config("STEAM_API_KEY", default="")
-    RAWG_API_KEY: str = config("RAWG_API_KEY", default="")
-    DEEPL_API_KEY: str = config("DEEPL_API_KEY", default="")
-    GOOGLE_TRANSLATE_API_KEY: str = config("GOOGLE_TRANSLATE_API_KEY", default="")
+    @property
+    def STEAM_API_KEY(self) -> str:
+        return get_config_value('API_KEYS', 'steam', config("STEAM_API_KEY", default=""))
+    @property
+    def RAWG_API_KEY(self) -> str:
+        return get_config_value('API_KEYS', 'rawg', config("RAWG_API_KEY", default=""))
+        
+    @property
+    def DEEPL_API_KEY(self) -> str:
+        return get_config_value('API_KEYS', 'deepl', config("DEEPL_API_KEY", default=""))
+        
+    @property
+    def GOOGLE_TRANSLATE_API_KEY(self) -> str:
+        return get_config_value('API_KEYS', 'google_translate', config("GOOGLE_TRANSLATE_API_KEY", default=""))
     GOOGLE_TRANSLATE_BASE_URL: str = config(
         "GOOGLE_TRANSLATE_BASE_URL",
         default="https://translation.googleapis.com/language/translate/v2",
@@ -52,14 +131,24 @@ class Settings:
     )
 
     # Cache Configuration
-    CACHE_ENABLED: bool = config("CACHE_ENABLED", default=True, cast=bool)
-    CACHE_TTL_HOURS: int = config("CACHE_TTL_HOURS", default=24, cast=int)
+    @property
+    def CACHE_ENABLED(self) -> bool:
+        return get_config_value('APP', 'cache_enabled', str(config("CACHE_ENABLED", default=True))).lower() == 'true'
+        
+    @property
+    def CACHE_TTL_HOURS(self) -> int:
+        return int(get_config_value('APP', 'cache_ttl_hours', str(config("CACHE_TTL_HOURS", default=24))))
     CACHE_MAX_SIZE: int = config("CACHE_MAX_SIZE", default=1000, cast=int)
     CACHE_DIR: Path = Path(config("CACHE_DIR", default="cache"))
 
     # Translation Configuration
-    DEFAULT_SOURCE_LANGUAGE: str = config("DEFAULT_SOURCE_LANGUAGE", default="en")
-    DEFAULT_TARGET_LANGUAGE: str = config("DEFAULT_TARGET_LANGUAGE", default="es")
+    @property
+    def DEFAULT_SOURCE_LANGUAGE(self) -> str:
+        return get_config_value('APP', 'default_source_language', config("DEFAULT_SOURCE_LANGUAGE", default="en"))
+        
+    @property
+    def DEFAULT_TARGET_LANGUAGE(self) -> str:
+        return get_config_value('APP', 'default_target_language', config("DEFAULT_TARGET_LANGUAGE", default="es"))
     TRANSLATION_PROVIDER: str = config("TRANSLATION_PROVIDER", default="deepl")
     FALLBACK_TRANSLATION_PROVIDER: str = config(
         "FALLBACK_TRANSLATION_PROVIDER",
@@ -208,6 +297,31 @@ class Settings:
             providers.append("google")
         return providers
 
+
+def configure_api_key(service: str, api_key: str) -> None:
+    """
+    Configura una clave API para un servicio específico.
+    
+    Args:
+        service: Nombre del servicio (steam, rawg, deepl, google_translate)
+        api_key: Clave API a configurar
+    """
+    config_parser = configparser.ConfigParser()
+    
+    # Cargar configuración existente si existe
+    if CONFIG_FILE.exists():
+        config_parser.read(CONFIG_FILE)
+    
+    # Asegurarse de que la sección existe
+    if 'API_KEYS' not in config_parser:
+        config_parser['API_KEYS'] = {}
+    
+    # Actualizar la clave
+    config_parser['API_KEYS'][service] = api_key
+    
+    # Guardar la configuración
+    with open(CONFIG_FILE, 'w') as configfile:
+        config_parser.write(configfile)
 
 # Instancia global de configuración
 settings = Settings()

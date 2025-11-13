@@ -58,39 +58,68 @@ poetry shell
 pip install -r requirements.txt
 ```
 
-## ⚙️ Configuración
+## Configuración
 
-### 1. Variables de Entorno
+### 1. Configuración de API Keys
 
-Copia `.env.example` a `.env` y configura tus API keys:
+Puedes configurar las claves API de dos maneras:
+
+#### Opción 1: Usando la línea de comandos (Recomendado)
 
 ```bash
-cp .env.example .env
+# Configurar clave de Steam
+game-lingo config set steam TU_CLAVE_DE_STEAM
+
+# Configurar clave de RAWG
+game-lingo config set rawg TU_CLAVE_DE_RAWG
+
+# Configurar clave de DeepL
+game-lingo config set deepl TU_CLAVE_DE_DEEPL
+
+# Configurar clave de Google Translate
+game-lingo config set google_translate TU_CLAVE_DE_GOOGLE
+
+# Ver configuración actual
+game-lingo config show
 ```
 
-### 2. APIs Requeridas
+#### Opción 2: Variables de Entorno
 
-#### Steam Store API (Gratuita)
-- No requiere API key
-- Límite: ~200 requests/5min por IP
+Alternativamente, puedes configurar las claves API mediante variables de entorno:
 
-#### RAWG API (Gratuita)
 ```bash
-# Registrarse en: https://rawg.io/apidocs
-RAWG_API_KEY=tu_api_key_aqui
+# Steam (opcional, no requiere clave)
+set STEAM_API_KEY=tu_clave
+
+# RAWG API (gratuita, regístrate en https://rawg.io/apidocs)
+set RAWG_API_KEY=tu_clave
+
+# DeepL API (freemium, regístrate en https://www.deepl.com/pro-api)
+set DEEPL_API_KEY=tu_clave
+
+# Google Translate API (de pago, configura en Google Cloud Console)
+set GOOGLE_TRANSLATE_API_KEY=tu_clave
 ```
 
-#### DeepL API (Freemium)
+### 2. Verificar la configuración
+
+Para verificar que todo está configurado correctamente:
+
 ```bash
-# Registrarse en: https://www.deepl.com/pro-api
-DEEPL_API_KEY=tu_api_key_aqui
+game-lingo config show
 ```
 
-#### Google Translate API (Pago)
-```bash
-# Configurar en Google Cloud Console
-GOOGLE_TRANSLATE_API_KEY=tu_api_key_aqui
-```
+### 3. Ubicación del archivo de configuración
+
+La configuración se guarda en:
+- Windows: `%USERPROFILE%\.config\game_lingo\config.ini`
+- Linux/macOS: `~/.config/game_lingo/config.ini`
+
+### 4. Orden de prioridad de configuración
+
+1. Variables de entorno (tienen prioridad)
+2. Archivo de configuración (`config.ini`)
+3. Valores por defecto
 
 ### 3. Configuración Opcional
 
