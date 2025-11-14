@@ -13,7 +13,6 @@ import configparser
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 from decouple import config
 
@@ -23,6 +22,7 @@ CONFIG_FILE = CONFIG_DIR / "config.ini"
 
 # Crear el directorio de configuración si no existe
 CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def get_config_value(section: str, key: str, default: str = "") -> str:
     """
@@ -34,13 +34,13 @@ def get_config_value(section: str, key: str, default: str = "") -> str:
     value = os.environ.get(env_key)
     if value is not None:
         return value
-        
+
     # Luego intentar con el archivo de configuración
     config_parser = configparser.ConfigParser()
     if CONFIG_FILE.exists():
         config_parser.read(CONFIG_FILE)
         return config_parser.get(section, key, fallback=default)
-    
+
     return default
 
 
@@ -48,41 +48,48 @@ def create_default_config():
     """Crea un archivo de configuración por defecto si no existe."""
     if not CONFIG_FILE.exists():
         config_parser = configparser.ConfigParser()
-        
+
         # Configuración de APIs
-        config_parser['API_KEYS'] = {
-            'steam': '',
-            'rawg': '',
-            'deepl': '',
-            'google_translate': ''
+        config_parser["API_KEYS"] = {
+            "steam": "",
+            "rawg": "",
+            "deepl": "",
+            "google_translate": "",
         }
-        
+
         # Configuración de la aplicación
-        config_parser['APP'] = {
-            'version': '1.0.0',
-            'cache_enabled': 'True',
-            'cache_ttl_hours': '24',
-            'default_source_language': 'en',
-            'default_target_language': 'es'
+        config_parser["APP"] = {
+            "version": "1.0.0",
+            "cache_enabled": "True",
+            "cache_ttl_hours": "24",
+            "default_source_language": "en",
+            "default_target_language": "es",
         }
-        
-        with open(CONFIG_FILE, 'w') as configfile:
+
+        with open(CONFIG_FILE, "w") as configfile:
             config_parser.write(configfile)
-        
+
         return config_parser
     return None
+
 
 class Settings:
     """Configuración de la aplicación."""
 
-    def __init__(self):
+    def __init__(self) -> None:
+        """Inicializa la configuración y valida parámetros críticos."""
         # Crear configuración por defecto si no existe
         create_default_config()
-        
+
         # Cargar configuración
         self.config_parser = configparser.ConfigParser()
         if CONFIG_FILE.exists():
             self.config_parser.read(CONFIG_FILE)
+
+        # Validar configuración
+        self._validate_config()
+        self._setup_logging()
+        self._ensure_cache_dir()
 
     # Application Configuration
     VERSION: str = "1.0.0"
@@ -90,18 +97,32 @@ class Settings:
     # APIs Configuration
     @property
     def STEAM_API_KEY(self) -> str:
-        return get_config_value('API_KEYS', 'steam', config("STEAM_API_KEY", default=""))
+        return get_config_value(
+            "API_KEYS",
+            "steam",
+            config("STEAM_API_KEY", default=""),
+        )
+
     @property
     def RAWG_API_KEY(self) -> str:
-        return get_config_value('API_KEYS', 'rawg', config("RAWG_API_KEY", default=""))
-        
+        return get_config_value("API_KEYS", "rawg", config("RAWG_API_KEY", default=""))
+
     @property
     def DEEPL_API_KEY(self) -> str:
-        return get_config_value('API_KEYS', 'deepl', config("DEEPL_API_KEY", default=""))
-        
+        return get_config_value(
+            "API_KEYS",
+            "deepl",
+            config("DEEPL_API_KEY", default=""),
+        )
+
     @property
     def GOOGLE_TRANSLATE_API_KEY(self) -> str:
-        return get_config_value('API_KEYS', 'google_translate', config("GOOGLE_TRANSLATE_API_KEY", default=""))
+        return get_config_value(
+            "API_KEYS",
+            "google_translate",
+            config("GOOGLE_TRANSLATE_API_KEY", default=""),
+        )
+
     GOOGLE_TRANSLATE_BASE_URL: str = config(
         "GOOGLE_TRANSLATE_BASE_URL",
         default="https://translation.googleapis.com/language/translate/v2",
@@ -133,22 +154,45 @@ class Settings:
     # Cache Configuration
     @property
     def CACHE_ENABLED(self) -> bool:
-        return get_config_value('APP', 'cache_enabled', str(config("CACHE_ENABLED", default=True))).lower() == 'true'
-        
+        return (
+            get_config_value(
+                "APP",
+                "cache_enabled",
+                str(config("CACHE_ENABLED", default=True)),
+            ).lower()
+            == "true"
+        )
+
     @property
     def CACHE_TTL_HOURS(self) -> int:
-        return int(get_config_value('APP', 'cache_ttl_hours', str(config("CACHE_TTL_HOURS", default=24))))
+        return int(
+            get_config_value(
+                "APP",
+                "cache_ttl_hours",
+                str(config("CACHE_TTL_HOURS", default=24)),
+            ),
+        )
+
     CACHE_MAX_SIZE: int = config("CACHE_MAX_SIZE", default=1000, cast=int)
     CACHE_DIR: Path = Path(config("CACHE_DIR", default="cache"))
 
     # Translation Configuration
     @property
     def DEFAULT_SOURCE_LANGUAGE(self) -> str:
-        return get_config_value('APP', 'default_source_language', config("DEFAULT_SOURCE_LANGUAGE", default="en"))
-        
+        return get_config_value(
+            "APP",
+            "default_source_language",
+            config("DEFAULT_SOURCE_LANGUAGE", default="en"),
+        )
+
     @property
     def DEFAULT_TARGET_LANGUAGE(self) -> str:
-        return get_config_value('APP', 'default_target_language', config("DEFAULT_TARGET_LANGUAGE", default="es"))
+        return get_config_value(
+            "APP",
+            "default_target_language",
+            config("DEFAULT_TARGET_LANGUAGE", default="es"),
+        )
+
     TRANSLATION_PROVIDER: str = config("TRANSLATION_PROVIDER", default="deepl")
     FALLBACK_TRANSLATION_PROVIDER: str = config(
         "FALLBACK_TRANSLATION_PROVIDER",
@@ -217,12 +261,6 @@ class Settings:
         "nintendo": ["nintendo", "switch", "nintendo switch", "3ds", "nintendo 3ds"],
         "mobile": ["mobile", "android", "ios", "iphone", "ipad"],
     }
-
-    def __init__(self) -> None:
-        """Inicializa la configuración y valida parámetros críticos."""
-        self._validate_config()
-        self._setup_logging()
-        self._ensure_cache_dir()
 
     def _validate_config(self) -> None:
         """Valida configuración crítica."""
@@ -301,27 +339,28 @@ class Settings:
 def configure_api_key(service: str, api_key: str) -> None:
     """
     Configura una clave API para un servicio específico.
-    
+
     Args:
         service: Nombre del servicio (steam, rawg, deepl, google_translate)
         api_key: Clave API a configurar
     """
     config_parser = configparser.ConfigParser()
-    
+
     # Cargar configuración existente si existe
     if CONFIG_FILE.exists():
         config_parser.read(CONFIG_FILE)
-    
+
     # Asegurarse de que la sección existe
-    if 'API_KEYS' not in config_parser:
-        config_parser['API_KEYS'] = {}
-    
+    if "API_KEYS" not in config_parser:
+        config_parser["API_KEYS"] = {}
+
     # Actualizar la clave
-    config_parser['API_KEYS'][service] = api_key
-    
+    config_parser["API_KEYS"][service] = api_key
+
     # Guardar la configuración
-    with open(CONFIG_FILE, 'w') as configfile:
+    with open(CONFIG_FILE, "w") as configfile:
         config_parser.write(configfile)
+
 
 # Instancia global de configuración
 settings = Settings()

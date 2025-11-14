@@ -11,14 +11,13 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..config import settings
-from ..core.rate_limiter import RateLimiter
 from ..exceptions import (
     APIError,
     AuthenticationError,
@@ -26,6 +25,9 @@ from ..exceptions import (
     TranslationError,
     ValidationError,
 )
+
+if TYPE_CHECKING:
+    from ..core.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -297,9 +299,10 @@ class GoogleTranslateAPIConnector:
         if response.status_code == 400:
             raise TranslationError(
                 message=f"Bad request: {error_message}",
+                provider="google_translate",
                 source_text="",
-                target_language="",
                 error_code="bad_request",
+                target_language="",
             )
         raise APIError(
             api_name="google_translate",
@@ -490,6 +493,7 @@ class GoogleTranslateAPIConnector:
             if "data" not in result_data or "translations" not in result_data["data"]:
                 raise TranslationError(
                     message="No translation returned from API",
+                    provider="google_translate",
                     source_text=text,
                     target_language=target_language,
                     error_code="no_translation",
@@ -523,114 +527,118 @@ class GoogleTranslateAPIConnector:
                 raise
             raise TranslationError(
                 message=f"Translation failed: {e!s}",
+                provider="google_translate",
                 source_text=text,
                 target_language=target_language,
                 error_code="translation_failed",
             )
 
-    def translate_batch(
-        self,
-        texts: List[str],
-        target_language: str,
-        source_language: Optional[str] = None,
-        format_: str = "text",
-    ) -> List[GoogleTranslationResult]:
-        """
-        Traduce múltiples textos en una sola petición.
 
-        Args:
-            texts: Lista de textos a traducir
-            target_language: Idioma de destino
-            source_language: Idioma de origen (opcional)
-            format_: Formato del texto ('text' o 'html')
+def translate_batch(
+    self,
+    texts: List[str],
+    target_language: str,
+    source_language: Optional[str] = None,
+    format_: str = "text",
+) -> List[GoogleTranslationResult]:
+    """
+    Traduce múltiples textos en una sola petición.
 
-        Returns:
-            Lista de resultados de traducción
+    Args:
+        texts: Lista de textos a traducir
+        target_language: Idioma de destino
+        source_language: Idioma de origen (opcional)
+        format_: Formato del texto ('text' o 'html')
 
-        Raises:
-            ValidationError: Parámetros inválidos
-            TranslationError: Error en la traducción
-        """
-        if not texts:
-            raise ValidationError(
-                message="Texts list cannot be empty",
-                field="texts",
-            )
+    Returns:
+        Lista de resultados de traducción
 
-        if not target_language:
-            raise ValidationError(
-                message="Target language is required",
-                field="target_language",
-            )
+    Raises:
+        ValidationError: Parámetros inválidos
+        TranslationError: Error en la traducción
+    """
+    if not texts:
+        raise ValidationError(
+            message="Texts list cannot be empty",
+            field="texts",
+        )
 
-        # Filtrar textos vacíos
-        valid_texts = [text for text in texts if text and text.strip()]
-        if not valid_texts:
-            raise ValidationError(
-                message="No valid texts to translate",
-                field="texts",
-            )
+    if not target_language:
+        raise ValidationError(
+            message="Target language is required",
+            field="target_language",
+        )
 
-        # Preparar datos de la petición
-        data = {
-            "q": valid_texts,
-            "target": target_language,
-            "format": format_,
-        }
+    # Filtrar textos vacíos
+    valid_texts = [text for text in texts if text and text.strip()]
+    if not valid_texts:
+        raise ValidationError(
+            message="No valid texts to translate",
+            field="texts",
+        )
 
-        if source_language:
-            data["source"] = source_language
+    # Preparar datos de la petición
+    data = {
+        "q": valid_texts,
+        "target": target_language,
+        "format": format_,
+    }
 
-        try:
-            logger.info(f"Translating {len(valid_texts)} texts to {target_language}")
-            response = self._make_request("", data=data)
-            result_data = response.json()
+    if source_language:
+        data["source"] = source_language
 
-            if "data" not in result_data or "translations" not in result_data["data"]:
-                raise TranslationError(
-                    message="No translations returned from API",
-                    source_text=str(valid_texts),
-                    target_language=target_language,
-                    error_code="no_translation",
-                )
+    try:
+        logger.info(f"Translating {len(valid_texts)} texts to {target_language}")
+        response = self._make_request("", data=data)
+        result_data = response.json()
 
-            translations = result_data["data"]["translations"]
-            results = []
-
-            for i, translation in enumerate(translations):
-                result = GoogleTranslationResult(
-                    text=translation["translatedText"],
-                    detected_source_language=translation.get("detectedSourceLanguage"),
-                    source_language=source_language,
-                    target_language=target_language,
-                )
-                results.append(result)
-
-            logger.info(f"Batch translation successful ({len(results)} texts)")
-            return results
-
-        except Exception as e:
-            if isinstance(
-                e,
-                (
-                    APIError,
-                    AuthenticationError,
-                    RateLimitError,
-                    TranslationError,
-                    ValidationError,
-                ),
-            ):
-                raise
+        if "data" not in result_data or "translations" not in result_data["data"]:
             raise TranslationError(
-                message=f"Batch translation failed: {e!s}",
+                message="No translations returned from API",
+                provider="google_translate",
                 source_text=str(valid_texts),
                 target_language=target_language,
-                error_code="batch_translation_failed",
+                error_code="no_translations",
             )
+
+        translations = result_data["data"]["translations"]
+        results = []
+
+        for i, translation in enumerate(translations):
+            result = GoogleTranslationResult(
+                text=translation["translatedText"],
+                detected_source_language=translation.get("detectedSourceLanguage"),
+                source_language=source_language,
+                target_language=target_language,
+            )
+            results.append(result)
+
+        logger.info(f"Batch translation successful ({len(results)} texts)")
+        return results
+
+    except Exception as e:
+        if isinstance(
+            e,
+            (
+                APIError,
+                AuthenticationError,
+                RateLimitError,
+                TranslationError,
+                ValidationError,
+            ),
+        ):
+            raise
+        raise TranslationError(
+            message=f"Batch translation failed: {e!s}",
+            provider="google_translate",
+            source_text=str(texts),
+            target_language=target_language,
+            error_code="batch_translation_failed",
+        )
 
     def translate_game_description(
         self,
-        description: str,
+        description: str | None = None,
         target_language: str = "es",
         preserve_html: bool = True,
     ) -> str:
@@ -667,7 +675,13 @@ class GoogleTranslateAPIConnector:
 
         except Exception as e:
             logger.error(f"Failed to translate game description: {e!s}")
-            raise
+            raise TranslationError(
+                message=f"Failed to translate game description: {e!s}",
+                provider="google_translate",
+                source_text=description or "",
+                target_language=target_language,
+                error_code="translation_failed",
+            ) from e
 
 
 def translate_game_description(

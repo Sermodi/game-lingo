@@ -13,16 +13,18 @@ import logging
 import sys
 from pathlib import Path
 
+from game_translator import GameDescriptionTranslator
+from game_translator.models.game import Platform
+
 # Añadir el directorio raíz al path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from game_translator import GameDescriptionTranslator
-from game_translator.models.game import Platform
 
 # Configurar logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -50,17 +52,21 @@ async def example_1_search_by_name():
         if result.game_info.short_description_es:
             print("\nDescripción corta (ES):")
             print(
-                result.game_info.short_description_es[:300] + "..."
-                if len(result.game_info.short_description_es) > 300
-                else result.game_info.short_description_es,
+                (
+                    result.game_info.short_description_es[:300] + "..."
+                    if len(result.game_info.short_description_es) > 300
+                    else result.game_info.short_description_es
+                ),
             )
 
         if result.game_info.detailed_description_es:
             print("\nDescripción detallada (ES):")
             print(
-                result.game_info.detailed_description_es[:300] + "..."
-                if len(result.game_info.detailed_description_es) > 300
-                else result.game_info.detailed_description_es,
+                (
+                    result.game_info.detailed_description_es[:300] + "..."
+                    if len(result.game_info.detailed_description_es) > 300
+                    else result.game_info.detailed_description_es
+                ),
             )
 
         if result.warnings:
@@ -79,9 +85,9 @@ async def example_2_translate_description_only():
 
     english_description = """
     Welcome to the world of adventure! This game offers an immersive experience
-    with stunning graphics and engaging gameplay. Explore vast worlds, battle 
+    with stunning graphics and engaging gameplay. Explore vast worlds, battle
     powerful enemies, and discover hidden treasures. Your journey begins now!
-    
+
     Features:
     - Open world exploration
     - Dynamic combat system
@@ -93,7 +99,8 @@ async def example_2_translate_description_only():
 
     try:
         result = await translator.translate_description(
-            english_description=english_description, game_name="Ejemplo de Juego",
+            english_description=english_description,
+            game_name="Ejemplo de Juego",
         )
 
         print(f"\nJuego: {result.game_info.name}")
@@ -172,9 +179,11 @@ async def example_4_with_platform():
         if result.game_info.short_description_es:
             print("\nDescripción (ES):")
             print(
-                result.game_info.short_description_es[:300] + "..."
-                if len(result.game_info.short_description_es) > 300
-                else result.game_info.short_description_es,
+                (
+                    result.game_info.short_description_es[:300] + "..."
+                    if len(result.game_info.short_description_es) > 300
+                    else result.game_info.short_description_es
+                ),
             )
 
     except Exception as e:

@@ -207,10 +207,10 @@ from game_lingo import GameDescriptionTranslator
 
 async def main():
     translator = GameDescriptionTranslator()
-    
+
     # Traducir un juego
     result = await translator.translate_game_description("The Witcher 3")
-    
+
     if result.success:
         game = result.game_info
         print(f"Juego: {game.name}")
@@ -238,33 +238,33 @@ async def advanced_example():
         rate_limiting_enabled=True,
         preferred_translation_provider="deepl"
     )
-    
+
     # Buscar por plataforma específica
     result = await translator.translate_game_description(
         game_identifier="Cyberpunk 2077",
         platform=Platform.PC,
         force_refresh=False  # Usar caché si existe
     )
-    
+
     # Información detallada
     if result.success:
         game = result.game_info
-        
+
         print(f"Juego: {game.name}")
         print(f"Año: {game.release_year}")
         print(f"Géneros: {', '.join(game.genres)}")
         print(f"Plataformas: {', '.join([p.value for p in game.platforms])}")
         print(f"Rating: {game.rating}/100")
-        
+
         print(f"\nDescripción:")
         print(game.get_spanish_description())
-        
+
         print(f"\nMetadatos de traducción:")
         print(f"   Fuente: {result.source.value}")
         print(f"   Confianza: {result.confidence:.2%}")
         print(f"   Tiempo: {result.processing_time_ms}ms")
         print(f"   APIs usadas: {', '.join(result.apis_used)}")
-        
+
         if result.warnings:
             print(f"\nAdvertencias:")
             for warning in result.warnings:
@@ -281,23 +281,23 @@ from game_lingo import GameDescriptionTranslator
 
 async def batch_translate():
     translator = GameDescriptionTranslator()
-    
+
     games = [
         "The Last of Us Part II",
-        "Ghost of Tsushima", 
+        "Ghost of Tsushima",
         "Hades",
         "Among Us",
         "Fall Guys"
     ]
-    
+
     # Procesar en paralelo (respetando rate limits)
     tasks = [
-        translator.translate_game_description(game) 
+        translator.translate_game_description(game)
         for game in games
     ]
-    
+
     results = await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     for game, result in zip(games, results):
         if isinstance(result, Exception):
             print(f"{game}: Error - {result}")
@@ -345,7 +345,7 @@ poetry run pytest tests/unit/
 async def cache_stats():
     translator = GameDescriptionTranslator()
     stats = await translator.cache.get_stats()
-    
+
     print(f"Estadísticas del Caché:")
     print(f"   Hit Rate: {stats['hit_rate']:.2%}")
     print(f"   Entradas activas: {stats['active_entries']}")
@@ -360,11 +360,11 @@ asyncio.run(cache_stats())
 ```python
 async def cache_maintenance():
     translator = GameDescriptionTranslator()
-    
+
     # Limpiar entradas expiradas
     deleted = await translator.cache.cleanup_expired()
     print(f"Eliminadas {deleted} entradas expiradas")
-    
+
     # Optimizar base de datos
     await translator.cache.optimize()
     print("Base de datos optimizada")

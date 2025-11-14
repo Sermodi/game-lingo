@@ -17,16 +17,19 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import aiohttp
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from ..config import settings
-from ..core.rate_limiter import RateLimiter
 from ..exceptions import APIError, GameNotFoundError, RateLimitError
 from ..models.api_response import SteamResponse
 from ..models.game import GameInfo, Platform
+
+if TYPE_CHECKING:
+    from ..core.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -394,19 +397,34 @@ class SteamAPI:
                 steam_response.detailed_description or steam_response.about_the_game,
             )
 
+        # Convertir release_year a datetime si está disponible
+        release_date = None
+        release_year = self._extract_year_from_date(steam_response.release_date)
+        if release_year:
+            try:
+                release_date = datetime(
+                    year=release_year, month=1, day=1, tzinfo=timezone.utc,
+                )
+            except (ValueError, TypeError):
+                pass
+
         return GameInfo(
             name=steam_response.name,
             steam_id=steam_response.app_id,
-            short_description_es=short_desc_es,
-            detailed_description_es=detailed_desc_es,
-            short_description_en=short_desc_en,
-            detailed_description_en=detailed_desc_en,
+            short_description_en=short_desc_en or "",  # Usar string vacío si es None
+            description=short_desc_en or "",  # Para compatibilidad
+            short_description_es=short_desc_es or "",
+            detailed_description_en=detailed_desc_en or "",
+            detailed_description_es=detailed_desc_es or "",
             platforms=[Platform.STEAM, Platform.PC],  # Steam siempre incluye PC
             genres=steam_response.genres or [],
-            release_year=self._extract_year_from_date(steam_response.release_date),
-            rating=steam_response.metacritic_score,
+            release_date=release_date,
+            metacritic_score=steam_response.metacritic_score,
+            store_url=f"https://store.steampowered.com/app/{steam_response.app_id}",
+            header_image=getattr(steam_response, "header_image", None),
+            screenshots=getattr(steam_response, "screenshots", []) or [],
+            translation_source=None,  # Steam proporciona datos nativos
             source_api="steam",
-            raw_data=steam_response.model_dump(),
         )
 
     def _clean_html(self, text: str | None) -> str | None:
@@ -466,16 +484,62 @@ class SteamAPI:
         )
 
     def _extract_year_from_date(self, date_str: str | None) -> int | None:
-        """Extrae año de una fecha."""
+        """
+        Extrae año de una fecha.
+
+        Args:
+            date_str: Cadena de fecha en varios formatos posibles
+
+        Returns:
+            Año como entero si se puede extraer, None si no es posible
+        """
         if not date_str:
             return None
 
-        # Buscar año de 4 dígitos
-        year_match = re.search(r"\b(19|20)\d{2}\b", date_str)
-        if year_match:
-            return int(year_match.group())
+        try:
+            # Intentar extraer año de formato YYYY
+            if re.match(r"^\d{4}$", date_str):
+                year = int(date_str)
+                if (
+                    1900 <= year <= datetime.now(timezone.utc).year + 5
+                ):  # Validar año razonable
+                    return year
+                return None
 
-        return None
+            # Intentar extraer de formato YYYY-MM-DD o similar
+            date_formats = [
+                r"(\d{4})[\-/](\d{1,2})[\-/](\d{1,2})",  # YYYY-MM-DD
+                r"(\d{1,2})[\-/](\d{1,2})[\-/](\d{4})",  # DD-MM-YYYY
+                r"(\d{4})[/](\d{1,2})[/](\d{1,2})",  # YYYY/MM/DD
+                r"(\d{1,2})[/](\d{1,2})[/](\d{4})",  # DD/MM/YYYY
+                r"(\d{4})\.(\d{1,2})\.(\d{1,2})",  # YYYY.MM.DD
+            ]
+
+            for fmt in date_formats:
+                match = re.search(fmt, date_str)
+                if match:
+                    # El primer grupo de captura es el año o el día dependiendo del formato
+                    # Asumimos que cualquier número de 4 dígitos es un año
+                    for group in match.groups():
+                        if len(group) == 4 and group.isdigit():
+                            year = int(group)
+                            if 1900 <= year <= datetime.now(timezone.utc).year + 5:
+                                return year
+                            return None
+
+            # Buscar cualquier secuencia de 4 dígitos como último recurso
+            match = re.search(r"(\d{4})", date_str)
+            if match:
+                year = int(match.group(1))
+                if 1900 <= year <= datetime.now(timezone.utc).year + 5:
+                    return year
+
+            logger.warning(f"No se pudo extraer un año válido de: {date_str}")
+            return None
+
+        except (ValueError, TypeError) as e:
+            logger.warning(f"Error al extraer año de '{date_str}': {e}")
+            return None
 
     def _extract_screenshots(self, screenshots_data: List[Dict[str, Any]]) -> List[str]:
         """Extrae URLs de screenshots."""

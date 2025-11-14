@@ -105,12 +105,12 @@ class TestGoogleTranslateResult:
 class TestGoogleTranslateAPIConnector:
     """Tests para la clase GoogleTranslateAPIConnector."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def connector(self):
         """Fixture que crea un conector para tests."""
         return GoogleTranslateAPIConnector(api_key="test_key", requests_per_second=10)
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_response(self):
         """Fixture que crea una respuesta mock."""
         response = Mock(spec=Response)
@@ -388,7 +388,8 @@ class TestConvenienceFunctions:
         assert result == "Hola mundo"
         # La función llama a translate_game_description con argumentos posicionales
         mock_connector.translate_game_description.assert_called_once_with(
-            description, "es"
+            description,
+            "es",
         )
 
     @patch("game_lingo.apis.google_translate_api.GoogleTranslateAPIConnector")
@@ -410,7 +411,7 @@ class TestConvenienceFunctions:
         mock_connector.detect_language.assert_called_once_with("Hello world")
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 class TestGoogleTranslateAPIIntegration:
     """
     Tests de integración que requieren una API key real.
@@ -421,7 +422,7 @@ class TestGoogleTranslateAPIIntegration:
     3. Ejecuta: pytest -m integration tests/test_google_translate_api.py
     """
 
-    @pytest.fixture
+    @pytest.fixture()
     def api_key(self):
         """Fixture que obtiene la API key del entorno."""
         import os
@@ -431,7 +432,7 @@ class TestGoogleTranslateAPIIntegration:
             pytest.skip("GOOGLE_TRANSLATE_API_KEY no configurada")
         return api_key
 
-    @pytest.fixture
+    @pytest.fixture()
     def connector(self, api_key):
         """Fixture que crea un conector real."""
         return GoogleTranslateAPIConnector(api_key=api_key)

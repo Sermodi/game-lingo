@@ -8,7 +8,7 @@ repos:
     rev: 23.12.1
     hooks:
       - id: black
-        language_version: python3.9
+        language_version: python3
         args: [--line-length=88]
 
   # Linting con Ruff (más rápido que flake8)
@@ -44,43 +44,43 @@ repos:
       # Prevenir commits a main/master
       - id: no-commit-to-branch
         args: [--branch, main, --branch, master]
-      
+
       # Trailing whitespace
       - id: trailing-whitespace
         args: [--markdown-linebreak-ext=md]
-      
+
       # Final de archivo
       - id: end-of-file-fixer
-      
+
       # YAML válido
       - id: check-yaml
         args: [--safe]
-      
+
       # TOML válido
       - id: check-toml
-      
+
       # JSON válido
       - id: check-json
-      
+
       # Merge conflicts
       - id: check-merge-conflict
-      
+
       # Archivos grandes (>500KB)
       - id: check-added-large-files
         args: [--maxkb=500]
-      
+
       # Nombres de archivos
       - id: check-case-conflict
-      
+
       # Docstrings
       - id: check-docstring-first
-      
+
       # Python debug statements
       - id: debug-statements
-      
+
       # Private keys
       - id: detect-private-key
-      
+
       # Mixed line endings
       - id: mixed-line-ending
         args: [--fix=lf]
@@ -102,7 +102,7 @@ repos:
 
 # Configuración global
 default_language_version:
-  python: python3.9
+  python: python3
 
 # Archivos a excluir
 exclude: |

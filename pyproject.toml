@@ -4,7 +4,6 @@ version = "0.3.4"
 description = "Multi-language video game description translator with smart API orchestration"
 authors = ["Sermodi <sermodsoftware@gmail.com>"]
 readme = "README.md"
-readme-content-type = "text/markdown"
 license = "MIT"
 homepage = "https://github.com/Sermodi/game-lingo"
 repository = "https://github.com/Sermodi/game-lingo"
@@ -80,12 +79,10 @@ ignore = [
     "E501",    # line-too-long (algunas líneas son difíciles de acortar)
     "UP035",   # deprecated-import (typing.Dict vs dict - no urgente)
     "UP006",   # non-pep585-annotation (Dict vs dict - no urgente)
-    "UP045",   # non-pep604-annotation (Optional vs | - no urgente)
     "FBT001",  # boolean-positional-arg (común en APIs y Pydantic)
     "FBT002",  # boolean-default-arg (común en APIs y Pydantic)
     "FBT003",  # boolean-positional-value (común en llamadas)
     "C901",    # complex-structure (algunas funciones necesitan complejidad)
-    "TC001",   # typing-only-import (no afecta runtime)
     "RUF013",  # implicit-optional (PEP 484, pero funciona)
     "F841",    # unused-variable (a veces para claridad)
     "PYI056",  # __all__.extend (funciona bien)
@@ -94,7 +91,6 @@ ignore = [
     "N805",    # invalid-first-argument-name (cls en validators de Pydantic)
     "PLC0415", # import-outside-top-level (imports condicionales OK)
     "RUF012",  # mutable-class-default (Pydantic Field maneja esto)
-    "LOG015",  # root-logger-call (getLogger(__name__) es correcto)
     "PERF203", # try-except-in-loop (a veces necesario)
     "PTH123",  # builtin-open (open() es más claro que Path.open())
     "RET504",  # unnecessary-assign (a veces mejora legibilidad)
@@ -108,15 +104,20 @@ ignore = [
     "SIM105",  # suppressible-exception (contextlib.suppress no siempre mejor)
     "SIM108",  # if-else-block-instead-of-if-exp (legibilidad)
     "FA100",   # future-rewritable-type-annotation (no urgente)
-    "TC003",   # typing-only-standard-library-import (no afecta runtime)
     "PYI034",  # non-self-return-type (validators de Pydantic)
     "RUF001",  # ambiguous-unicode-character (caracteres españoles OK)
     "PERF401", # manual-list-comprehension (legibilidad)
+    "UP007",   # non-pep484-annotation (Dict vs dict - no urgente)
+    "S101",    # use-assert (no urgente)
+    "N802",    # invalid-first-argument-name (cls en validators de Pydantic)
+    "TRY200",  # try-except-in-loop (a veces necesario)
+    "PT012",   # asyncio-mode (no urgente)
+    "RET503",  # unnecessary-assign (a veces mejora legibilidad)
 ]
 
 [tool.ruff.lint.per-file-ignores]
 "game_lingo/cli.py" = ["T201"]
-"tests/**/*.py" = ["PLR0913", "PLR0915", "S101", "SLF001", "E402", "A004", "B017", "PT011", "F821", "SIM117"]
+"tests/**/*.py" = ["PLR0913", "PLR0915", "S101", "SLF001", "E402", "B017", "PT011", "F821", "SIM117"]
 "**/__init__.py" = ["F401"]
 
 [tool.mypy]

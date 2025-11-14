@@ -9,7 +9,7 @@ Incluye tests para:
 - Conversión de datos
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
@@ -23,7 +23,7 @@ from game_lingo.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from game_lingo.models import GameInfo, Platform
+from game_lingo.models import GameInfo
 
 
 class TestRAWGResponse:
@@ -70,13 +70,13 @@ class TestRAWGResponse:
 class TestRAWGAPIConnector:
     """Tests para RAWGAPIConnector."""
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_session(self):
         """Mock de aiohttp.ClientSession."""
         session = AsyncMock(spec=aiohttp.ClientSession)
         return session
 
-    @pytest.fixture
+    @pytest.fixture()
     def connector(self, mock_session):
         """Conector RAWG con sesión mock."""
         with patch("game_lingo.apis.rawg_api.settings") as mock_settings:
@@ -90,7 +90,8 @@ class TestRAWGAPIConnector:
             mock_rate_limiter.wait_if_needed = AsyncMock()
 
             connector = RAWGAPIConnector(
-                api_key="test_api_key", rate_limiter=mock_rate_limiter
+                api_key="test_api_key",
+                rate_limiter=mock_rate_limiter,
             )
             connector.session = mock_session
             return connector
@@ -116,7 +117,7 @@ class TestRAWGAPIConnector:
             assert connector.api_key == "test_key"
             assert connector.base_url == "https://api.rawg.io/api"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_success(self, connector, mock_session):
         """Test búsqueda exitosa de juegos."""
         # Mock response
@@ -154,7 +155,7 @@ class TestRAWGAPIConnector:
         assert call_args[1]["params"]["search"] == "GTA V"
         assert call_args[1]["params"]["key"] == "test_api_key"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_not_found(self, connector, mock_session):
         """Test búsqueda sin resultados."""
         # Mock response vacía
@@ -171,7 +172,7 @@ class TestRAWGAPIConnector:
 
         assert "No games found for 'NonexistentGame' in RAWG" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_validation_error(self, connector):
         """Test validación de parámetros de búsqueda."""
         # Query vacío
@@ -188,7 +189,7 @@ class TestRAWGAPIConnector:
             await connector.search_game("test", limit=50)
         assert "Limit must be between 1 and 40" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_api_error(self, connector, mock_session):
         """Test manejo de errores de API."""
         # Mock error de conexión
@@ -201,7 +202,7 @@ class TestRAWGAPIConnector:
         assert "RAWG API request failed" in str(exc_info.value)
         assert exc_info.value.api_name == "rawg"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_game_details_success(self, connector, mock_session):
         """Test obtención exitosa de detalles."""
         # Mock response
@@ -239,7 +240,7 @@ class TestRAWGAPIConnector:
         assert "3498" in call_args[0][0]  # URL contiene el ID
         assert call_args[1]["params"]["key"] == "test_api_key"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_game_details_validation_error(self, connector):
         """Test validación de parámetros de detalles."""
         # ID inválido
@@ -251,7 +252,7 @@ class TestRAWGAPIConnector:
             await connector.get_game_details(-1)
         assert "Game ID must be a positive integer" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_game_by_name_success(self, connector, mock_session):
         """Test búsqueda por nombre exitosa."""
         # Mock search response
@@ -305,7 +306,7 @@ class TestRAWGAPIConnector:
         )
         assert result.screenshots == ["https://example.com/screenshot1.jpg"]
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_game_by_name_not_found(self, connector, mock_session):
         """Test búsqueda por nombre sin resultados."""
         # Mock empty search response
@@ -382,7 +383,7 @@ class TestRAWGAPIConnector:
         cleaned = connector._clean_html(None)
         assert cleaned == ""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_handle_response_errors(self, connector):
         """Test manejo de errores de respuesta."""
         # Rate limit error
@@ -429,11 +430,11 @@ class TestRAWGAPIConnector:
         assert exc_info.value.status_code == 400
 
 
-@pytest.mark.integration
+@pytest.mark.integration()
 class TestRAWGAPIIntegration:
     """Tests de integración para RAWG API (requieren API key real)."""
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_real_search(self):
         """Test de búsqueda real (requiere RAWG_API_KEY)."""
         import os
@@ -449,7 +450,7 @@ class TestRAWGAPIIntegration:
             assert result.has_results
             assert any("witcher" in game["name"].lower() for game in result.results)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_real_game_details(self):
         """Test de detalles reales (requiere RAWG_API_KEY)."""
         import os
@@ -467,7 +468,7 @@ class TestRAWGAPIIntegration:
             assert "witcher" in details["name"].lower()
             assert "description_raw" in details or "description" in details
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_real_find_by_name(self):
         """Test de búsqueda por nombre real (requiere RAWG_API_KEY)."""
         import os

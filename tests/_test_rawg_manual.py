@@ -19,10 +19,7 @@ project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
 
 from game_lingo.apis.rawg_api import RAWGAPIConnector, search_rawg_game
-from game_lingo.exceptions import (
-    AuthenticationError,
-    GameNotFoundError,
-)
+from game_lingo.exceptions import AuthenticationError, GameNotFoundError
 
 # Configurar logging
 logging.basicConfig(

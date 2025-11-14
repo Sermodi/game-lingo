@@ -45,26 +45,39 @@ def setup_argparse() -> argparse.ArgumentParser:
     )
 
     # Subparsers para comandos principales
-    subparsers = parser.add_subparsers(dest='command', help='Comandos disponibles')
-    
+    subparsers = parser.add_subparsers(dest="command", help="Comandos disponibles")
+
     # Comando: config
-    config_parser = subparsers.add_parser('config', help='Configuración de API keys')
-    config_subparsers = config_parser.add_subparsers(dest='config_action', help='Acción de configuración')
-    
+    config_parser = subparsers.add_parser("config", help="Configuración de API keys")
+    config_subparsers = config_parser.add_subparsers(
+        dest="config_action",
+        help="Acción de configuración",
+    )
+
     # Subcomando: set
-    set_parser = config_subparsers.add_parser('set', help='Establecer una clave API')
-    set_parser.add_argument('service', choices=['steam', 'rawg', 'deepl', 'google_translate'], 
-                          help='Servicio para configurar')
-    set_parser.add_argument('api_key', help='Clave API para el servicio')
-    
+    set_parser = config_subparsers.add_parser("set", help="Establecer una clave API")
+    set_parser.add_argument(
+        "service",
+        choices=["steam", "rawg", "deepl", "google_translate"],
+        help="Servicio para configurar",
+    )
+    set_parser.add_argument("api_key", help="Clave API para el servicio")
+
     # Subcomando: show
-    show_parser = config_subparsers.add_parser('show', help='Mostrar configuración actual')
-    show_parser.add_argument('--show-keys', action='store_true', help='Mostrar claves API (cuidado con la seguridad)')
-    
+    show_parser = config_subparsers.add_parser(
+        "show",
+        help="Mostrar configuración actual",
+    )
+    show_parser.add_argument(
+        "--show-keys",
+        action="store_true",
+        help="Mostrar claves API (cuidado con la seguridad)",
+    )
+
     # Comandos existentes
-    for cmd in ['search', 'translate', 'describe', 'info', 'stats']:
+    for cmd in ["search", "translate", "describe", "info", "stats"]:
         subparsers.add_parser(cmd)
-    
+
     # Argumentos globales
     parser.add_argument(
         "--version",
@@ -759,15 +772,19 @@ def show_help() -> None:
     print("  stats                Mostrar estadísticas de uso")
     print("\nConfiguración:")
     print("  game-lingo config set <servicio> <clave_api>  Configurar una clave API")
-    print("  game-lingo config show                        Mostrar configuración actual")
-    print("  game-lingo config show --show-keys            Mostrar claves API (con precaución)")
+    print(
+        "  game-lingo config show                        Mostrar configuración actual",
+    )
+    print(
+        "  game-lingo config show --show-keys            Mostrar claves API (con precaución)",
+    )
     print("\nEjemplos:")
-    print('  game-lingo config set steam TU_CLAVE_DE_STEAM')
+    print("  game-lingo config set steam TU_CLAVE_DE_STEAM")
     print('  game-lingo search "The Witcher 3"')
     print('  game-lingo translate "Embark on an epic journey" --source en --target es')
     print('  game-lingo describe "Hollow Knight"')
-    print('  game-lingo info 292030')
-    print('  game-lingo stats')
+    print("  game-lingo info 292030")
+    print("  game-lingo stats")
     print("\nPara ayuda detallada de un comando: game-lingo <comando> -h")
 
 
@@ -777,7 +794,7 @@ async def async_main(args: argparse.Namespace) -> None:
         if args.command == "config":
             cmd_config(args)
             return
-            
+
         translator = GameDescriptionTranslator()
 
         if args.command == "search":
@@ -803,37 +820,37 @@ async def async_main(args: argparse.Namespace) -> None:
 
 def cmd_config(args: argparse.Namespace) -> None:
     """Maneja los comandos de configuración."""
-    from .config import configure_api_key, settings, CONFIG_FILE
-    
-    if args.config_action == 'set':
+    from .config import CONFIG_FILE, configure_api_key, settings
+
+    if args.config_action == "set":
         # Configurar una clave API
         configure_api_key(args.service, args.api_key)
         print(f"✅ Clave API para {args.service} configurada correctamente.")
         print(f"Configuración guardada en: {CONFIG_FILE}")
-    
-    elif args.config_action == 'show':
+
+    elif args.config_action == "show":
         # Mostrar configuración actual
         print("\n🔧 Configuración actual:")
         print(f"Archivo de configuración: {CONFIG_FILE}")
         print("\n🔑 Servicios configurados:")
-        
+
         services = {
-            'steam': 'Steam',
-            'rawg': 'RAWG',
-            'deepl': 'DeepL',
-            'google_translate': 'Google Translate'
+            "steam": "Steam",
+            "rawg": "RAWG",
+            "deepl": "DeepL",
+            "google_translate": "Google Translate",
         }
-        
+
         for service, name in services.items():
             key = getattr(settings, f"{service.upper()}_API_KEY", "")
             status = "✅ Configurado" if key else "❌ No configurado"
             if args.show_keys and key:
                 status = f"🔑 {key[:5]}...{key[-3:] if len(key) > 8 else ''}"
             print(f"  {name}: {status}")
-        
+
         if not args.show_keys:
             print("\n💡 Usa '--show-keys' para ver las claves API (con precaución).")
-    
+
     else:
         print("Uso: game-lingo config [set|show] [opciones]")
         print("\nEjemplos:")

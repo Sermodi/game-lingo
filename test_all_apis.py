@@ -17,10 +17,6 @@ import logging
 import sys
 from pathlib import Path
 
-# Añadir el directorio del proyecto al path
-project_root = Path(__file__).parent
-sys.path.insert(0, str(project_root))
-
 from game_lingo.apis.deepl_api import DeepLAPIConnector
 from game_lingo.apis.google_translate_api import GoogleTranslateAPIConnector
 from game_lingo.apis.rawg_api import RAWGAPIConnector
@@ -28,9 +24,14 @@ from game_lingo.apis.steam_api import SteamAPI
 from game_lingo.config import settings
 from game_lingo.exceptions import GameNotFoundError
 
+# Añadir el directorio del proyecto al path
+project_root = Path(__file__).parent
+sys.path.insert(0, str(project_root))
+
 # Configurar logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -45,13 +46,13 @@ TEST_GAMES = [
 # Texto de prueba para traductores
 TEST_TEXT_EN = """
 Welcome to the world of adventure! This game offers an immersive experience
-with stunning graphics and engaging gameplay. Explore vast worlds, battle 
-powerful enemies, and discover hidden treasures. The story will keep you 
+with stunning graphics and engaging gameplay. Explore vast worlds, battle
+powerful enemies, and discover hidden treasures. The story will keep you
 enthralled from beginning to end.
 """
 
 
-async def test_rawg_api():
+async def test_rawg_api() -> None:
     """Prueba RAWG API con los juegos especificados."""
     print("\n" + "=" * 70)
     print("TEST 1: RAWG API")
@@ -68,7 +69,8 @@ async def test_rawg_api():
                 try:
                     # Usar find_game_by_name para obtener detalles completos
                     game_info = await connector.find_game_by_name(
-                        game_name, exact_match=False,
+                        game_name,
+                        exact_match=False,
                     )
 
                     if game_info:
@@ -132,7 +134,7 @@ async def test_rawg_api():
         print(f"[ERROR] Error general en RAWG API: {e}")
 
 
-async def test_steam_api():
+async def test_steam_api() -> None:
     """Prueba Steam API con los juegos especificados."""
     print("\n" + "=" * 70)
     print("TEST 2: STEAM API")
@@ -145,7 +147,9 @@ async def test_steam_api():
                 try:
                     # Buscar en Steam
                     results = await steam.search_game(
-                        game_name, language="spanish", max_results=3,
+                        game_name,
+                        language="spanish",
+                        max_results=3,
                     )
 
                     if results:
@@ -158,7 +162,8 @@ async def test_steam_api():
                             game_id = game.get("id")
                             if game_id:
                                 game_info = await steam.find_game_by_name(
-                                    game_name, language="spanish",
+                                    game_name,
+                                    language="spanish",
                                 )
                                 if game_info:
                                     if game_info.short_description_es:
@@ -201,7 +206,7 @@ async def test_steam_api():
         print(f"[ERROR] Error general en Steam API: {e}")
 
 
-def test_deepl_api():
+def test_deepl_api() -> None:
     """Prueba DeepL API con texto de prueba."""
     print("\n" + "=" * 70)
     print("TEST 3: DEEPL API")
@@ -229,7 +234,9 @@ def test_deepl_api():
         # Traducir
         print("\nTraduciendo a espanol...")
         result = deepl.translate_text(
-            text=TEST_TEXT_EN, target_language="ES", source_language="EN",
+            text=TEST_TEXT_EN,
+            target_language="ES",
+            source_language="EN",
         )
 
         print("[OK] Traduccion exitosa:")
@@ -244,7 +251,7 @@ def test_deepl_api():
         logger.exception("Error detallado")
 
 
-def test_google_translate_api():
+def test_google_translate_api() -> None:
     """Prueba Google Translate API con texto de prueba."""
     print("\n" + "=" * 70)
     print("TEST 4: GOOGLE TRANSLATE API")
@@ -264,7 +271,9 @@ def test_google_translate_api():
         # Traducir
         print("\nTraduciendo a espanol...")
         result = google.translate_text(
-            text=TEST_TEXT_EN, target_language="es", source_language="en",
+            text=TEST_TEXT_EN,
+            target_language="es",
+            source_language="en",
         )
 
         print("[OK] Traduccion exitosa:")
@@ -275,7 +284,9 @@ def test_google_translate_api():
         print(f"   Caracteres usados: {getattr(result, 'characters_used', 'N/A')}")
         print("   Texto traducido:")
         translated_text = getattr(
-            result, "translated_text", getattr(result, "text", ""),
+            result,
+            "translated_text",
+            getattr(result, "text", ""),
         )
         print(f"   {translated_text[:200]}...")
 
@@ -286,7 +297,7 @@ def test_google_translate_api():
         logger.exception("Error detallado")
 
 
-async def main():
+async def main() -> None:
     """Ejecuta todos los tests."""
     print("=" * 70)
     print("PRUEBA COMPLETA DE TODAS LAS APIs")

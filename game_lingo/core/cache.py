@@ -18,7 +18,7 @@ import sqlite3
 import time
 import zlib
 from pathlib import Path
-from typing import Any
+from typing import Any, Union
 
 from ..config import settings
 from ..exceptions import CacheError
@@ -38,22 +38,33 @@ class Cache:
     - Estadísticas de uso
     """
 
-    def __init__(self, db_path: Path | None = None) -> None:
+    def __init__(
+        self,
+        db_path: Union[Path, str, None] = None,
+        ttl_days: int = settings.CACHE_TTL_DAYS,
+        compress_threshold: int = 1024,  # Comprimir si el tamaño > 1KB
+        cleanup_interval: int = 3600,  # Limpiar cada hora
+    ) -> None:
         """
         Inicializa el sistema de caché.
 
         Args:
             db_path: Ruta personalizada para la base de datos (opcional)
+            ttl_days: TTL en días (opcional)
+            compress_threshold: Umbral para comprimir datos (opcional)
+            cleanup_interval: Intervalo de limpieza en segundos (opcional)
         """
-        self.db_path = db_path or settings.CACHE_DIR / "game_cache.db"
-        self.ttl_seconds = settings.CACHE_TTL_HOURS * 3600
+        self.db_path = Path(db_path) if db_path is not None else settings.CACHE_DATABASE
+        self.ttl_seconds = ttl_days * 86400
+        self.compress_threshold = compress_threshold
+        self.cleanup_interval = cleanup_interval
         self.max_size_mb = settings.CACHE_MAX_SIZE
 
         # Estadísticas
         self.stats = {
             "hits": 0,
             "misses": 0,
-            "sets": 0,
+            "sets_count": 0,  # Renombrado de 'sets' para evitar conflicto con built-in set
             "deletes": 0,
             "cleanups": 0,
         }
@@ -183,7 +194,7 @@ class Cache:
             logger.error(f"Error retrieving from cache: {e}")
             return None
 
-    async def set(
+    async def set_value(
         self,
         key: str,
         value: TranslationResult,
@@ -226,7 +237,7 @@ class Cache:
         value: TranslationResult,
         ttl_override: int | None = None,
     ) -> bool:
-        """Versión síncrona de set para ejecutar en thread pool."""
+        """Versión síncrona de set_value para ejecutar en thread pool."""
         try:
             # Serializar valor (mode='json' convierte datetime a string automáticamente)
             data = value.model_dump(mode="json")

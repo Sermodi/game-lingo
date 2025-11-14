@@ -33,7 +33,7 @@ async def deepl_connector():
         yield connector
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_usage_info(deepl_connector):
     """Test obtener información de uso de la API."""
     usage = await deepl_connector.get_usage()
@@ -57,7 +57,7 @@ async def test_usage_info(deepl_connector):
     ), "El porcentaje debe estar entre 0 y 100"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_supported_languages(deepl_connector):
     """Test obtener idiomas soportados."""
     # Obtener idiomas de origen
@@ -83,7 +83,7 @@ async def test_supported_languages(deepl_connector):
         print(f"- {lang.name} ({lang.code})")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_simple_translation(deepl_connector):
     """Test traducción simple."""
     test_texts = [
@@ -107,7 +107,7 @@ async def test_simple_translation(deepl_connector):
             print(f"   Idioma detectado: {result.detected_source_language}")
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_game_description_translation(deepl_connector):
     """Test traducción de descripciones de juegos."""
     game_descriptions = [
@@ -132,7 +132,7 @@ async def test_game_description_translation(deepl_connector):
         ), "La traducción parece demasiado corta"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_formality_levels(deepl_connector):
     """Test diferentes niveles de formalidad."""
     text = "How are you doing today?"
@@ -158,7 +158,7 @@ async def test_formality_levels(deepl_connector):
     ), "Los diferentes niveles de formalidad deberían producir traducciones diferentes"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_convenience_function(deepl_connector):
     """Test función de conveniencia."""
     description = (
@@ -179,7 +179,7 @@ async def test_convenience_function(deepl_connector):
     ), "El texto traducido debe ser diferente al original"
 
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio()
 async def test_error_handling():
     """Test manejo de errores."""
     # Test con API key inválida

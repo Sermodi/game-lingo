@@ -23,19 +23,19 @@ from game_lingo.models.game import GameInfo, Platform
 class TestSteamAPI:
     """Test suite para SteamAPI."""
 
-    @pytest.fixture
+    @pytest.fixture()
     async def steam_api(self):
         """Fixture que proporciona una instancia de SteamAPI."""
         async with SteamAPI() as api:
             yield api
 
-    @pytest.fixture
+    @pytest.fixture()
     def mock_session(self):
         """Fixture que proporciona una sesión HTTP mock."""
         session = AsyncMock(spec=aiohttp.ClientSession)
         return session
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_search_response(self):
         """Respuesta de ejemplo para búsqueda."""
         return {
@@ -66,7 +66,7 @@ class TestSteamAPI:
             ],
         }
 
-    @pytest.fixture
+    @pytest.fixture()
     def sample_details_response(self):
         """Respuesta de ejemplo para detalles de juego."""
         return {
@@ -132,7 +132,7 @@ class TestSteamAPI:
             },
         }
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_success(self, mock_session, sample_search_response):
         """Test búsqueda exitosa de juegos."""
         # Configurar mock
@@ -159,7 +159,7 @@ class TestSteamAPI:
         assert call_args[1]["params"]["term"] == "witcher"
         assert call_args[1]["params"]["l"] == "spanish"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_not_found(self, mock_session):
         """Test búsqueda sin resultados."""
         # Configurar mock para respuesta vacía
@@ -177,7 +177,7 @@ class TestSteamAPI:
         assert "juego_inexistente" in str(exc_info.value)
         assert "steam" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_api_error(self, mock_session):
         """Test manejo de errores de API en búsqueda."""
         # Configurar mock para error de API
@@ -195,7 +195,7 @@ class TestSteamAPI:
 
         assert "Steam search failed" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_search_game_rate_limit(self, mock_session):
         """Test manejo de rate limiting."""
         # Configurar mock para rate limit
@@ -212,7 +212,7 @@ class TestSteamAPI:
         assert "rate limit exceeded" in str(exc_info.value).lower()
         assert "120" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_game_details_success(
         self,
         mock_session,
@@ -248,7 +248,7 @@ class TestSteamAPI:
         assert call_args[1]["params"]["appids"] == "292030"
         assert call_args[1]["params"]["l"] == "spanish"
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_get_game_details_not_found(self, mock_session):
         """Test detalles de juego no encontrado."""
         # Configurar mock para juego no encontrado
@@ -265,7 +265,7 @@ class TestSteamAPI:
         assert "999999" in str(exc_info.value)
         assert "steam" in str(exc_info.value)
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_game_by_name_success(
         self,
         mock_session,
@@ -307,7 +307,7 @@ class TestSteamAPI:
         # Verificar que se hicieron ambas llamadas
         assert mock_session.get.call_count == 2
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_find_game_by_name_not_found(self, mock_session):
         """Test búsqueda de juego inexistente."""
         # Configurar mock para búsqueda sin resultados
@@ -422,7 +422,7 @@ class TestSteamAPI:
         assert "RPG" in genres
         assert len(genres) == 3
 
-    @pytest.mark.asyncio
+    @pytest.mark.asyncio()
     async def test_context_manager(self):
         """Test uso como context manager."""
         async with SteamAPI() as api:
@@ -455,8 +455,8 @@ class TestSteamAPI:
 class TestSteamAPIIntegration:
     """Tests de integración con Steam API real."""
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_real_search(self):
         """Test búsqueda real en Steam (requiere conexión)."""
         async with SteamAPI() as api:
@@ -467,8 +467,8 @@ class TestSteamAPIIntegration:
             except Exception as e:
                 pytest.skip(f"Steam API no disponible: {e}")
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_real_details(self):
         """Test obtención real de detalles (requiere conexión)."""
         async with SteamAPI() as api:
@@ -481,8 +481,8 @@ class TestSteamAPIIntegration:
             except Exception as e:
                 pytest.skip(f"Steam API no disponible: {e}")
 
-    @pytest.mark.integration
-    @pytest.mark.asyncio
+    @pytest.mark.integration()
+    @pytest.mark.asyncio()
     async def test_real_find_by_name(self):
         """Test búsqueda completa real (requiere conexión)."""
         async with SteamAPI() as api:

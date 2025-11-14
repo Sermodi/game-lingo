@@ -48,7 +48,7 @@ __email__ = "sermodsoftware@gmail.com"
 def _get_project_meta() -> Dict[str, Any]:
     """Obtiene los metadatos del proyecto desde pyproject.toml."""
     pyproject_path = Path(__file__).parent.parent / "pyproject.toml"
-    
+
     try:
         with open(pyproject_path, "rb") as f:
             pyproject = tomllib.load(f)
