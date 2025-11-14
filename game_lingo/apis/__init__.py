@@ -63,9 +63,9 @@ try:
     from .google_translate_api import detect_language as _google_detect_language
     from .google_translate_api import translate_game_description as _google_translate
 
-    GoogleTranslateAPIConnector: Type[
+    GoogleTranslateAPIConnector: Type[_GoogleTranslateAPIConnector] = (
         _GoogleTranslateAPIConnector
-    ] = _GoogleTranslateAPIConnector
+    )
     google_translate: Callable[..., Any] = _google_translate
     google_detect_language: Callable[..., Any] = _google_detect_language
 except ImportError:
