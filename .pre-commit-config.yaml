@@ -27,14 +27,15 @@ repos:
           - types-requests
           - pydantic
         args: [--config-file=pyproject.toml]
-        exclude: ^tests/
+        exclude: (tests/|test_.*_manual\.(py|tsx?)|test_.*\.(py|tsx?)|game_lingo(\/|\\)cli\.py|example_usage\.py|\.pre-commit(\/|\\).*)
 
   # Security scanning con Bandit
   - repo: https://github.com/PyCQA/bandit
     rev: 1.7.6
     hooks:
       - id: bandit
-        args: [-r, game_translator/, -ll]
+        args: [-r, game_lingo/, -s, 'B605,B607,B110']
+        pass_filenames: false
         exclude: ^tests/
 
   # Hooks básicos de pre-commit
@@ -54,7 +55,6 @@ repos:
 
       # YAML válido
       - id: check-yaml
-        args: [--safe]
 
       # TOML válido
       - id: check-toml

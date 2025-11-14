@@ -169,7 +169,7 @@ class RAWGAPIConnector:
 
             async with self.session.get(url, params=params) as response:
                 await self._handle_response_errors(response)
-                data = await response.json()
+                data: Dict[str, Any] = await response.json()
 
                 rawg_response = RAWGResponse(data)
 
@@ -325,7 +325,7 @@ class RAWGAPIConnector:
             description = self._clean_html(description)
 
         # Extraer plataformas
-        from ..models.platform import Platform
+        from ..models.game import Platform
 
         platforms = []
         for platform_data in rawg_data.get("platforms", []):

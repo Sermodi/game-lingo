@@ -41,7 +41,7 @@ class Cache:
     def __init__(
         self,
         db_path: Union[Path, str, None] = None,
-        ttl_days: int = settings.CACHE_TTL_DAYS,
+        ttl_hours: int = settings.CACHE_TTL_HOURS,
         compress_threshold: int = 1024,  # Comprimir si el tamaño > 1KB
         cleanup_interval: int = 3600,  # Limpiar cada hora
     ) -> None:
@@ -54,8 +54,9 @@ class Cache:
             compress_threshold: Umbral para comprimir datos (opcional)
             cleanup_interval: Intervalo de limpieza en segundos (opcional)
         """
-        self.db_path = Path(db_path) if db_path is not None else settings.CACHE_DATABASE
-        self.ttl_seconds = ttl_days * 86400
+        default_db = settings.CACHE_DIR / "cache.sqlite"
+        self.db_path = Path(db_path) if db_path is not None else default_db
+        self.ttl_seconds = ttl_hours * 3600
         self.compress_threshold = compress_threshold
         self.cleanup_interval = cleanup_interval
         self.max_size_mb = settings.CACHE_MAX_SIZE

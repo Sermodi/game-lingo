@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import sys
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 # Importaciones estándar primero
 if sys.version_info >= (3, 11):
@@ -52,7 +52,7 @@ def _get_project_meta() -> Dict[str, Any]:
     try:
         with open(pyproject_path, "rb") as f:
             pyproject = tomllib.load(f)
-        return pyproject.get("tool", {}).get("poetry", {})
+        return cast(Dict[str, Any], pyproject.get("tool", {}).get("poetry", {}))
     except Exception as e:
         print(f"Error al leer pyproject.toml: {e}", file=sys.stderr)
         return {}

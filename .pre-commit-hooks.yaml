@@ -1,0 +1,6 @@
+-   id: fix-pyproject
+    name: Fix pyproject.toml
+    description: Remove readme-content-type from pyproject.toml
+    entry: sed -i '/readme-content-type/d' pyproject.toml
+    language: system
+    files: ^pyproject\.toml$

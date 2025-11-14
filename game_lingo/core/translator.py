@@ -11,16 +11,13 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Optional, Union, cast
+from typing import Any, Optional, TypeVar
 
-from ..apis import (
-    DeepLAPI,
-    DeepLAPIConnector,
-    GoogleTranslateAPI,
-    GoogleTranslateAPIConnector,
-    SteamAPI,
-)
+from ..apis import deepl_api, google_translate_api
+from ..apis.deepl_api import DeepLAPIConnector
+from ..apis.google_translate_api import GoogleTranslateAPIConnector
 from ..apis.rawg_api import RAWGAPIConnector
+from ..apis.steam_api import SteamAPI
 from ..config import settings
 from ..exceptions import ValidationError
 from ..models.game import (
@@ -33,6 +30,19 @@ from ..models.game import (
 from .cache import Cache
 from .rate_limiter import RateLimiter
 
+# Type variables for API connectors
+T = TypeVar("T")
+
+# Type aliases for API connectors
+DeepLAPIType = (
+    deepl_api.DeepLAPIConnector if hasattr(deepl_api, "DeepLAPIConnector") else Any
+)
+GoogleTranslateAPIType = (
+    google_translate_api.GoogleTranslateAPIConnector
+    if hasattr(google_translate_api, "GoogleTranslateAPIConnector")
+    else Any
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -44,12 +54,6 @@ class GameDescriptionTranslator:
     1. Steam Store API para descripciones nativas en español
     2. RAWG API para datos en inglés de otras plataformas
     3. DeepL/Google Translate para traducción automática
-
-    Características:
-    - Caché inteligente para optimizar rendimiento
-    - Rate limiting para respetar límites de APIs
-    - Manejo robusto de errores con fallbacks
-    - Soporte asíncrono para mejor rendimiento
     """
 
     def __init__(
@@ -70,6 +74,12 @@ class GameDescriptionTranslator:
         self.rate_limiter = RateLimiter() if rate_limiting_enabled else None
         self.preferred_translation_provider = preferred_translation_provider
 
+        # Initialize API clients
+        self.steam_api: Optional[SteamAPI] = SteamAPI(rate_limiter=self.rate_limiter)
+        self.rawg_api: Optional[RAWGAPIConnector] = None
+        self.deepl_api: Optional[DeepLAPIConnector] = None
+        self.google_api: Optional[GoogleTranslateAPIConnector] = None
+
         # Inicializar APIs
         self._init_apis()
 
@@ -82,26 +92,21 @@ class GameDescriptionTranslator:
     def _init_apis(self) -> None:
         """Inicializa las APIs disponibles."""
         # Steam API siempre disponible (no requiere API key)
-        self.steam_api = SteamAPI(rate_limiter=self.rate_limiter) if SteamAPI else None
+        self.steam_api = SteamAPI(rate_limiter=self.rate_limiter)
 
         # RAWG API requiere API key
-        self.rawg_api: Optional[RAWGAPIConnector] = None
-        if RAWGAPIConnector and settings.is_api_configured("rawg"):
+        if settings.is_api_configured("rawg"):
             self.rawg_api = RAWGAPIConnector(rate_limiter=self.rate_limiter)
 
         # APIs de traducción requieren API keys
-        self.deepl_api: Optional[Union[DeepLAPI, DeepLAPIConnector]] = None
-        if DeepLAPI and settings.is_api_configured("deepl"):
-            self.deepl_api = DeepLAPI(
+        if settings.is_api_configured("deepl"):
+            self.deepl_api = DeepLAPIConnector(
                 api_key=settings.DEEPL_API_KEY,
                 rate_limiter=self.rate_limiter,
             )
 
-        self.google_api: Optional[
-            Union[GoogleTranslateAPI, GoogleTranslateAPIConnector]
-        ] = None
-        if GoogleTranslateAPI and settings.is_api_configured("google"):
-            self.google_api = GoogleTranslateAPI(
+        if settings.is_api_configured("google"):
+            self.google_api = GoogleTranslateAPIConnector(
                 api_key=settings.GOOGLE_TRANSLATE_API_KEY,
                 rate_limiter=self.rate_limiter,
             )
@@ -114,7 +119,14 @@ class GameDescriptionTranslator:
         target_lang: Language | str = Language.SPANISH,
         force_refresh: bool = False,
     ) -> TranslationResult:
-        result = TranslationResult()
+        # Initialize with required fields
+        result = TranslationResult(
+            game_info=GameInfo(name=game_identifier or "Unknown Game"),
+            success=False,
+            source=TranslationSource.NATIVE,  # Will be updated later if needed
+            confidence=0.0,
+            processing_time_ms=0,
+        )
         cache_key = (
             f"{game_identifier or 'direct'}:{target_lang}"
             if game_identifier
@@ -157,9 +169,10 @@ class GameDescriptionTranslator:
                 result.game_info = GameInfo(
                     name=game_identifier or "Unknown Game",
                     short_description_en=english_description,
-                    source=TranslationSource.PROVIDED,
+                    translation_source=TranslationSource.MANUAL,
                 )
                 result.success = True
+                result.source = TranslationSource.MANUAL
             else:
                 if not game_identifier:
                     raise ValidationError(
@@ -168,7 +181,7 @@ class GameDescriptionTranslator:
 
                 # Buscar en caché primero
                 if self.cache and not force_refresh:
-                    cached_result = self.cache.get(cache_key)
+                    cached_result = await self.cache.get(cache_key)
                     if cached_result:
                         logger.info(f"Cache hit for {cache_key}")
                         return cached_result
@@ -180,12 +193,14 @@ class GameDescriptionTranslator:
                 )
                 if game_info:
                     result.game_info = game_info
-                    result.source = game_info.source
+                    if hasattr(game_info, "translation_source"):
+                        result.source = (
+                            game_info.translation_source or TranslationSource.NATIVE
+                        )
                     result.success = True
                 else:
-                    result.success = False
-                    result.error = (
-                        f"No se pudo encontrar información para {game_identifier}"
+                    result.add_error(
+                        f"No se pudo encontrar información para {game_identifier}",
                     )
                     return result
 
@@ -203,16 +218,20 @@ class GameDescriptionTranslator:
                 )
                 if translated_info:
                     result.game_info = translated_info
-                    result.was_translated = True
+                    # Update source to indicate translation occurred
+                    result.source = (
+                        TranslationSource.GOOGLE
+                        if self.preferred_translation_provider == "google"
+                        else TranslationSource.DEEPL
+                    )
 
             # Actualizar caché
             if self.cache and result.success and not force_refresh:
-                self.cache.set(cache_key, result)
+                await self.cache.set_value(cache_key, result)
 
         except Exception as e:
             logger.exception("Error en translate_game_description")
-            result.success = False
-            result.error = str(e)
+            result.add_error(str(e))
         finally:
             result.processing_time_ms = int((time.time() - start_time) * 1000)
 
@@ -297,7 +316,14 @@ class GameDescriptionTranslator:
         platform: Optional[Platform] = None,
     ) -> Optional[GameInfo]:
         """Obtiene la información del juego de las APIs disponibles."""
-        result = TranslationResult()
+        # Create a minimal result for search_game_hybrid
+        result = TranslationResult(
+            game_info=GameInfo(name=game_identifier or "Unknown Game"),
+            success=False,
+            source=TranslationSource.NATIVE,
+            confidence=0.0,
+            processing_time_ms=0,
+        )
         game_info = await self._search_game_hybrid(game_identifier, platform, result)
         return game_info if game_info else None
 
@@ -321,8 +347,8 @@ class GameDescriptionTranslator:
                 target_lang,
                 "en",
             )
-            if translation:
-                game_info.short_description_es = translation.text
+            if translation and "text" in translation:
+                game_info.short_description_es = translation["text"]
 
         # Traducir la descripción detallada si está en inglés
         if game_info.detailed_description_en:
@@ -331,8 +357,8 @@ class GameDescriptionTranslator:
                 target_lang,
                 "en",
             )
-            if translation:
-                game_info.detailed_description_es = translation.text
+            if translation and "text" in translation:
+                game_info.detailed_description_es = translation["text"]
 
         return game_info
 
@@ -341,8 +367,13 @@ class GameDescriptionTranslator:
         text: str,
         target_lang: str,
         source_lang: str = "en",
-    ) -> Optional[TranslationResult]:
-        """Obtiene la traducción del texto usando el proveedor preferido o fallback."""
+    ) -> Optional[dict]:
+        """
+        Obtiene la traducción del texto usando el proveedor preferido o fallback.
+
+        Returns:
+            dict: Dictionary with 'text' and optionally 'detected_source_language'
+        """
         if not text.strip():
             return None
 
@@ -361,51 +392,71 @@ class GameDescriptionTranslator:
         # Si no hay proveedores disponibles o fallan
         return None
 
+    async def _translate_with_google(
+        self,
+        text: str,
+        target_lang: str,
+        source_lang: str = "en",
+    ) -> Optional[dict]:
+        """Traduce texto usando Google."""
+        if not self.google_api or not settings.GOOGLE_TRANSLATE_API_KEY:
+            return None
+
+        try:
+            # Asegurarse de que self.google_api es del tipo correcto
+            google = self.google_api
+            result = google.translate_text(
+                text=text,
+                target_language=target_lang,
+                source_language=source_lang,
+            )
+            if result and hasattr(result, "text"):
+                return {
+                    "text": result.text,
+                    "detected_source_language": getattr(
+                        result,
+                        "detected_source_language",
+                        None,
+                    ),
+                }
+            return None
+        except Exception as e:
+            logger.warning(f"Error en traducción Google: {e}")
+            return None
+
     async def _translate_with_deepl(
         self,
         text: str,
         target_lang: str,
         source_lang: str = "EN",
-    ) -> Optional[TranslationResult]:
+    ) -> Optional[dict]:
         """Traduce texto usando DeepL."""
         if not self.deepl_api or not settings.DEEPL_API_KEY:
             return None
 
         try:
             # Asegurarse de que self.deepl_api es del tipo correcto
-            deepl = cast("DeepLAPIConnector", self.deepl_api)
-            return await deepl.translate_text(
+            deepl = self.deepl_api
+            result = deepl.translate_text(
                 text=text,
                 target_language=target_lang.upper(),
                 source_language=source_lang.upper(),
             )
+            if result and hasattr(result, "text"):
+                return {
+                    "text": result.text,
+                    "detected_source_language": getattr(
+                        result,
+                        "detected_source_language",
+                        None,
+                    ),
+                }
+            return None
         except Exception as e:
             logger.warning(f"Error en traducción DeepL: {e}")
             return None
 
-    async def _translate_with_google(
-        self,
-        text: str,
-        target_lang: str,
-        source_lang: str = "en",
-    ) -> Optional[TranslationResult]:
-        """Traduce texto usando Google Translate."""
-        if not self.google_api or not settings.GOOGLE_TRANSLATE_API_KEY:
-            return None
-
-        try:
-            # Asegurarse de que self.google_api es del tipo correcto
-            google = cast("GoogleTranslateAPIConnector", self.google_api)
-            return await google.translate_text(
-                text=text,
-                target_language=target_lang.lower(),
-                source_language=source_lang.lower(),
-            )
-        except Exception as e:
-            logger.warning(f"Error en traducción Google: {e}")
-            return None
-
-    def _should_try_steam(self, platform: Platform | None) -> bool:
+    def _should_try_steam(self, platform: Optional[Platform]) -> bool:
         """Determina si debe intentar Steam API basado en la plataforma."""
         if not platform:
             return True  # Intentar Steam por defecto
@@ -433,7 +484,7 @@ class GameDescriptionTranslator:
             if game_info and (
                 game_info.short_description_es or game_info.detailed_description_es
             ):
-                game_info.source = TranslationSource.STEAM
+                game_info.source_api = "steam"
                 return game_info
 
         except Exception as e:
@@ -458,7 +509,7 @@ class GameDescriptionTranslator:
 
             # Si se encontró, devolver
             if game_info:
-                game_info.source = TranslationSource.RAWG
+                game_info.source_api = "rawg"
                 return game_info
 
         except Exception as e:

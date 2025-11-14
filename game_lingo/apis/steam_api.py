@@ -29,6 +29,8 @@ from ..models.api_response import SteamResponse
 from ..models.game import GameInfo, Platform
 
 if TYPE_CHECKING:
+    from types import TracebackType
+
     from ..core.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
@@ -83,7 +85,12 @@ class SteamAPI:
             self.session = aiohttp.ClientSession(timeout=self.timeout)
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb) -> None:
+    async def __aexit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Context manager exit."""
         if self._own_session and self.session:
             await self.session.close()
@@ -403,7 +410,10 @@ class SteamAPI:
         if release_year:
             try:
                 release_date = datetime(
-                    year=release_year, month=1, day=1, tzinfo=timezone.utc,
+                    year=release_year,
+                    month=1,
+                    day=1,
+                    tzinfo=timezone.utc,
                 )
             except (ValueError, TypeError):
                 pass

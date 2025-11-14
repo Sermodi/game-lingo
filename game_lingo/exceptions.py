@@ -14,6 +14,8 @@ Jerarquía de excepciones:
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class GameTranslatorError(Exception):
     """Excepción base para todos los errores del módulo."""
@@ -87,7 +89,7 @@ class TranslationError(GameTranslatorError):
         provider: str | None = None,
         source_text: str | None = None,
         details: dict[str, str] | None = None,
-        **kwargs: dict,
+        **kwargs: dict[str, Any],
     ) -> None:
         # Guardar kwargs adicionales (p. ej. target_language, error_code) en details
         merged_details = dict(details or {})

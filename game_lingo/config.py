@@ -44,7 +44,7 @@ def get_config_value(section: str, key: str, default: str = "") -> str:
     return default
 
 
-def create_default_config():
+def create_default_config() -> configparser.ConfigParser | None:
     """Crea un archivo de configuración por defecto si no existe."""
     if not CONFIG_FILE.exists():
         config_parser = configparser.ConfigParser()
