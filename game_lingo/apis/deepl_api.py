@@ -11,14 +11,16 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    import types
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..config import settings
-from ..core.rate_limiter import RateLimiter
 from ..exceptions import (
     APIError,
     AuthenticationError,
@@ -26,6 +28,9 @@ from ..exceptions import (
     TranslationError,
     ValidationError,
 )
+
+if TYPE_CHECKING:
+    from ..core.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +81,7 @@ class DeepLAPIConnector:
         self,
         api_key: Optional[str] = None,
         is_pro: bool = False,
-        timeout: int = None,
+        timeout: Optional[int] = None,
         rate_limiter: Optional[RateLimiter] = None,
     ):
         """
@@ -107,7 +112,7 @@ class DeepLAPIConnector:
             self.base_url = "https://api-free.deepl.com/v2"
 
         self.session = self._create_session()
-        self._last_request_time = 0
+        self._last_request_time = 0.0  # Usar float para mantener precisión
         self._min_request_interval = 1.0 / settings.DEEPL_REQUESTS_PER_SECOND
 
         logger.info(f"DeepL API connector initialized (Pro: {self.is_pro})")
@@ -139,11 +144,16 @@ class DeepLAPIConnector:
 
         return session
 
-    def __enter__(self):
+    def __enter__(self) -> DeepLAPIConnector:
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[types.TracebackType],
+    ) -> None:
         """Context manager exit."""
         if hasattr(self, "session"):
             self.session.close()
@@ -252,34 +262,40 @@ class DeepLAPIConnector:
             )
         if response.status_code == 429:
             # DeepL puede incluir Retry-After header
-            retry_after = response.headers.get("Retry-After")
-            if retry_after:
+            retry_after_header = response.headers.get("Retry-After")
+            retry_after_seconds = 60  # Valor por defecto
+
+            if retry_after_header:
                 try:
-                    retry_after = int(retry_after)
-                except ValueError:
-                    retry_after = 60
-            else:
-                retry_after = 60
+                    retry_after_seconds = int(retry_after_header)
+                except (ValueError, TypeError):
+                    pass  # Usar el valor por defecto si no se puede convertir a entero
 
             raise RateLimitError(
                 api_name="deepl",
                 message=f"Rate limit exceeded: {error_message}",
-                retry_after=retry_after,
+                retry_after=retry_after_seconds,
                 status_code=429,
             )
         if response.status_code == 400:
             raise TranslationError(
                 message=f"Bad request: {error_message}",
                 source_text="",
-                target_language="",
-                error_code="bad_request",
+                provider="deepl",
+                details={
+                    "target_language": "",
+                    "error_code": "bad_request",
+                },
             )
         if response.status_code == 456:
             raise TranslationError(
                 message=f"Quota exceeded: {error_message}",
                 source_text="",
-                target_language="",
-                error_code="quota_exceeded",
+                provider="deepl",
+                details={
+                    "target_language": "",
+                    "error_code": "quota_exceeded",
+                },
             )
         raise APIError(
             api_name="deepl",
@@ -453,8 +469,11 @@ class DeepLAPIConnector:
                 raise TranslationError(
                     message="No translation returned from API",
                     source_text=text,
-                    target_language=target_language,
-                    error_code="no_translation",
+                    provider="deepl",
+                    details={
+                        "target_language": target_language,
+                        "error_code": "no_translation",
+                    },
                 )
 
             translation = result_data["translations"][0]
@@ -486,8 +505,11 @@ class DeepLAPIConnector:
             raise TranslationError(
                 message=f"Translation failed: {e!s}",
                 source_text=text,
-                target_language=target_language,
-                error_code="translation_failed",
+                provider="deepl",
+                details={
+                    "target_language": target_language,
+                    "error_code": "translation_failed",
+                },
             )
 
     def translate_game_description(

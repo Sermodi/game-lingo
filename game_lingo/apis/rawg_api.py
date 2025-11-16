@@ -14,6 +14,7 @@ Características:
 
 import asyncio
 import logging
+import types
 from typing import Any, Dict, Optional
 
 import aiohttp
@@ -85,12 +86,17 @@ class RAWGAPIConnector:
                 message="RAWG API key is required. Get one at https://rawg.io/apidocs",
             )
 
-    async def __aenter__(self):
+    async def __aenter__(self) -> "RAWGAPIConnector":
         """Context manager entry."""
         await self.initialize()
         return self
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[types.TracebackType],
+    ) -> None:
         """Context manager exit."""
         await self.close()
 
@@ -163,7 +169,7 @@ class RAWGAPIConnector:
 
             async with self.session.get(url, params=params) as response:
                 await self._handle_response_errors(response)
-                data = await response.json()
+                data: Dict[str, Any] = await response.json()
 
                 rawg_response = RAWGResponse(data)
 
@@ -185,7 +191,7 @@ class RAWGAPIConnector:
         wait=wait_exponential(multiplier=1, min=1, max=10),
         retry=retry_if_exception_type((aiohttp.ClientError, asyncio.TimeoutError)),
     )
-    async def get_game_details(self, game_id: int) -> Dict[str, Any]:
+    async def get_game_details(self, game_id: int) -> dict[str, Any]:
         """
         Obtiene detalles completos de un juego por ID.
 
@@ -261,7 +267,7 @@ class RAWGAPIConnector:
 
             # Buscar coincidencia exacta o mejor match
             best_match = None
-            best_score = 0
+            best_score = 0.0  # Usar float para manejar divisiones
 
             for game_data in response.results:
                 game_name = game_data.get("name", "").lower()
@@ -319,19 +325,40 @@ class RAWGAPIConnector:
             description = self._clean_html(description)
 
         # Extraer plataformas
+        from ..models.game import Platform
+
         platforms = []
         for platform_data in rawg_data.get("platforms", []):
             platform_info = platform_data.get("platform", {})
-            platforms.append(platform_info.get("name", ""))
+            platform_name = platform_info.get("name", "")
+            if platform_name:
+                # Convertir a enum Platform si es posible, de lo contrario usar el nombre como string
+                try:
+                    platform = Platform(platform_name.lower())
+                    platforms.append(platform)
+                except ValueError:
+                    platforms.append(platform_name)
 
         # Extraer géneros
-        genres = [genre.get("name", "") for genre in rawg_data.get("genres", [])]
+        genres = [
+            genre.get("name", "")
+            for genre in rawg_data.get("genres", [])
+            if genre.get("name")
+        ]
 
         # Extraer desarrolladores
-        developers = [dev.get("name", "") for dev in rawg_data.get("developers", [])]
+        developers = [
+            dev.get("name", "")
+            for dev in rawg_data.get("developers", [])
+            if dev.get("name")
+        ]
 
         # Extraer publishers
-        publishers = [pub.get("name", "") for pub in rawg_data.get("publishers", [])]
+        publishers = [
+            pub.get("name", "")
+            for pub in rawg_data.get("publishers", [])
+            if pub.get("name")
+        ]
 
         # Fecha de lanzamiento
         release_date = rawg_data.get("released", "")
@@ -341,11 +368,14 @@ class RAWGAPIConnector:
 
         # Metacritic score
         metacritic_score = rawg_data.get("metacritic")
+        if metacritic_score is not None:
+            # Asegurar que el puntuación esté en el rango 0-100
+            metacritic_score = max(0, min(100, int(metacritic_score)))
 
         # Screenshots
         screenshots = []
         for screenshot in rawg_data.get("short_screenshots", []):
-            if "image" in screenshot:
+            if screenshot.get("image"):
                 screenshots.append(screenshot["image"])
 
         # Convertir fecha si existe
@@ -359,11 +389,23 @@ class RAWGAPIConnector:
                 pass
 
         # Convertir rating (RAWG usa 0-5, GameInfo espera 0-10)
-        user_score = rating * 2 if rating else None
+        user_score = float(rating * 2) if rating is not None else None
+        if user_score is not None:
+            # Asegurar que el puntuación esté en el rango 0-10
+            user_score = max(0.0, min(10.0, user_score))
+
+        # URL de la tienda
+        store_url = rawg_data.get("website", "")
+        if not store_url and "reddit_url" in rawg_data:
+            store_url = rawg_data["reddit_url"]
+
+        # Imagen de cabecera
+        header_image = rawg_data.get("background_image", "")
 
         return GameInfo(
             name=name,
             short_description_en=description,
+            description=description,  # Para compatibilidad
             rawg_id=rawg_data.get("id"),
             platforms=platforms,
             genres=genres,
@@ -372,6 +414,8 @@ class RAWGAPIConnector:
             release_date=release_datetime,
             user_score=user_score,
             metacritic_score=metacritic_score,
+            store_url=store_url,
+            header_image=header_image,
             screenshots=screenshots,
             translation_source=None,  # RAWG no traduce, solo proporciona datos
             source_api="rawg",  # Establecer la fuente de los datos
@@ -381,8 +425,16 @@ class RAWGAPIConnector:
         """Maneja errores de respuesta HTTP."""
         if response.status == 429:
             # Rate limit exceeded
-            retry_after = response.headers.get("Retry-After", "60")
-            raise RateLimitError("rawg", int(retry_after))
+            retry_after = response.headers.get("Retry-After")
+            retry_seconds = (
+                int(retry_after) if retry_after and retry_after.isdigit() else 60
+            )
+            raise RateLimitError(
+                api_name="rawg",
+                retry_after=retry_seconds,
+                message=f"Rate limit exceeded. Retry after {retry_seconds} seconds",
+                status_code=429,
+            )
 
         if response.status == 401:
             raise AuthenticationError(api_name="rawg", message="Invalid RAWG API key")

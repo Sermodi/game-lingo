@@ -23,7 +23,7 @@ import logging
 import time
 from collections import deque
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from ..config import settings
 from ..exceptions import RateLimitError
@@ -80,14 +80,18 @@ class RateLimiter:
     - Monitoreo de uso
     """
 
-    def __init__(self, state_file: Optional[Path] = None) -> None:
+    def __init__(self, state_file: Optional[Union[Path, str]] = None) -> None:
         """
         Inicializa el rate limiter.
 
         Args:
             state_file: Archivo para persistir estado (opcional)
         """
-        self.state_file = state_file or settings.CACHE_DIR / "rate_limiter_state.json"
+        self.state_file = (
+            Path(state_file)
+            if state_file
+            else settings.CACHE_DIR / "rate_limiter_state.json"
+        )
         self.api_limits: Dict[str, APIRateLimit] = {}
         self.global_stats = {
             "total_requests": 0,

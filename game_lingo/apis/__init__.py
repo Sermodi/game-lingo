@@ -10,45 +10,65 @@ Este módulo contiene los conectores para todas las APIs utilizadas:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any, Callable, Optional, Type, TypeVar, cast
+
 # Definir __all__ al inicio
 __all__ = [
-    "RAWGAPI",
-    "DeepLAPI",
-    "GoogleTranslateAPI",
+    "DeepLAPIConnector",
+    "GoogleTranslateAPIConnector",
+    "RAWGAPIConnector",
     "SteamAPI",
+    "deepl_translate",
+    "google_detect_language",
+    "google_translate",
 ]
+
+# Variables de tipo
+T = TypeVar("T")
 
 # Importar conectores cuando estén disponibles
 try:
-    from .steam_api import SteamAPI
+    from .steam_api import SteamAPI as _SteamAPI
+
+    SteamAPI: Type[_SteamAPI] = _SteamAPI
 except ImportError:
-    SteamAPI = None
+    SteamAPI = None  # type: ignore[assignment]
 
 try:
-    from .rawg_api import RAWGAPI
+    from .rawg_api import RAWGAPIConnector as _RAWGAPIConnector
+
+    RAWGAPIConnector: Type[_RAWGAPIConnector] = _RAWGAPIConnector
 except ImportError:
-    RAWGAPI = None
+    RAWGAPIConnector = None  # type: ignore[assignment]
+    if not TYPE_CHECKING:
+        RAWGAPI = None  # type: ignore[misc]
 
+# Tipos para las funciones de DeepL
+# DeepL API
 try:
-    from .deepl_api import DeepLAPIConnector
-    from .deepl_api import translate_game_description as deepl_translate
+    from .deepl_api import DeepLAPIConnector as _DeepLAPIConnector
+    from .deepl_api import translate_game_description as _deepl_translate
 
-    DeepLAPI = DeepLAPIConnector
-    __all__.extend(["DeepLAPIConnector", "deepl_translate"])
+    DeepLAPIConnector: Type[_DeepLAPIConnector] = _DeepLAPIConnector
+    deepl_translate: Callable[..., Any] = _deepl_translate
 except ImportError:
-    DeepLAPIConnector = None
-    deepl_translate = None
+    DeepLAPIConnector = None  # type: ignore[assignment]
+    deepl_translate = None  # type: ignore[assignment]
 
+# Google Translate API
 try:
-    from .google_translate_api import GoogleTranslateAPIConnector
-    from .google_translate_api import detect_language as google_detect_language
-    from .google_translate_api import translate_game_description as google_translate
-
-    GoogleTranslateAPI = GoogleTranslateAPIConnector
-    __all__.extend(
-        ["GoogleTranslateAPIConnector", "google_detect_language", "google_translate"],
+    from .google_translate_api import (
+        GoogleTranslateAPIConnector as _GoogleTranslateAPIConnector,
     )
+    from .google_translate_api import detect_language as _google_detect_language
+    from .google_translate_api import translate_game_description as _google_translate
+
+    GoogleTranslateAPIConnector: Type[_GoogleTranslateAPIConnector] = (
+        _GoogleTranslateAPIConnector
+    )
+    google_translate: Callable[..., Any] = _google_translate
+    google_detect_language: Callable[..., Any] = _google_detect_language
 except ImportError:
-    GoogleTranslateAPIConnector = None
-    google_translate = None
-    google_detect_language = None
+    GoogleTranslateAPIConnector = None  # type: ignore[assignment]
+    google_translate = None  # type: ignore[assignment]
+    google_detect_language = None  # type: ignore[assignment]

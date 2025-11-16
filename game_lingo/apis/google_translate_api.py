@@ -11,14 +11,13 @@ import asyncio
 import logging
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
 
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from ..config import settings
-from ..core.rate_limiter import RateLimiter
 from ..exceptions import (
     APIError,
     AuthenticationError,
@@ -26,6 +25,11 @@ from ..exceptions import (
     TranslationError,
     ValidationError,
 )
+
+if TYPE_CHECKING:
+    from types import TracebackType
+
+    from ..core.rate_limiter import RateLimiter
 
 logger = logging.getLogger(__name__)
 
@@ -95,7 +99,7 @@ class GoogleTranslateAPIConnector:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        timeout: int = None,
+        timeout: Optional[int] = None,
         requests_per_second: Optional[int] = None,
         rate_limiter: Optional[RateLimiter] = None,
     ):
@@ -123,7 +127,7 @@ class GoogleTranslateAPIConnector:
 
         self.base_url = settings.GOOGLE_TRANSLATE_BASE_URL
         self.session = self._create_session()
-        self._last_request_time = 0
+        self._last_request_time = 0.0
         self._min_request_interval = 1.0 / self.requests_per_second
 
         logger.info("Google Translate API connector initialized")
@@ -154,11 +158,16 @@ class GoogleTranslateAPIConnector:
 
         return session
 
-    def __enter__(self):
+    def __enter__(self) -> GoogleTranslateAPIConnector:
         """Context manager entry."""
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[TracebackType],
+    ) -> None:
         """Context manager exit."""
         if hasattr(self, "session"):
             self.session.close()
@@ -297,9 +306,9 @@ class GoogleTranslateAPIConnector:
         if response.status_code == 400:
             raise TranslationError(
                 message=f"Bad request: {error_message}",
+                provider="google_translate",
                 source_text="",
-                target_language="",
-                error_code="bad_request",
+                details={"error_code": "bad_request", "target_language": ""},
             )
         raise APIError(
             api_name="google_translate",
@@ -490,9 +499,12 @@ class GoogleTranslateAPIConnector:
             if "data" not in result_data or "translations" not in result_data["data"]:
                 raise TranslationError(
                     message="No translation returned from API",
+                    provider="google_translate",
                     source_text=text,
-                    target_language=target_language,
-                    error_code="no_translation",
+                    details={
+                        "target_language": target_language,
+                        "error_code": "no_translation",
+                    },
                 )
 
             translation = result_data["data"]["translations"][0]
@@ -523,9 +535,12 @@ class GoogleTranslateAPIConnector:
                 raise
             raise TranslationError(
                 message=f"Translation failed: {e!s}",
+                provider="google_translate",
                 source_text=text,
-                target_language=target_language,
-                error_code="translation_failed",
+                details={
+                    "target_language": target_language,
+                    "error_code": "translation_failed",
+                },
             )
 
     def translate_batch(
@@ -589,15 +604,18 @@ class GoogleTranslateAPIConnector:
             if "data" not in result_data or "translations" not in result_data["data"]:
                 raise TranslationError(
                     message="No translations returned from API",
+                    provider="google_translate",
                     source_text=str(valid_texts),
-                    target_language=target_language,
-                    error_code="no_translation",
+                    details={
+                        "target_language": target_language,
+                        "error_code": "no_translations",
+                    },
                 )
 
             translations = result_data["data"]["translations"]
-            results = []
+            results: List[GoogleTranslationResult] = []
 
-            for i, translation in enumerate(translations):
+            for translation in translations:
                 result = GoogleTranslationResult(
                     text=translation["translatedText"],
                     detected_source_language=translation.get("detectedSourceLanguage"),
@@ -623,14 +641,17 @@ class GoogleTranslateAPIConnector:
                 raise
             raise TranslationError(
                 message=f"Batch translation failed: {e!s}",
-                source_text=str(valid_texts),
-                target_language=target_language,
-                error_code="batch_translation_failed",
+                provider="google_translate",
+                source_text=str(texts),
+                details={
+                    "target_language": target_language,
+                    "error_code": "batch_translation_failed",
+                },
             )
 
     def translate_game_description(
         self,
-        description: str,
+        description: str | None = None,
         target_language: str = "es",
         preserve_html: bool = True,
     ) -> str:
@@ -667,7 +688,15 @@ class GoogleTranslateAPIConnector:
 
         except Exception as e:
             logger.error(f"Failed to translate game description: {e!s}")
-            raise
+            raise TranslationError(
+                message=f"Failed to translate game description: {e!s}",
+                provider="google_translate",
+                source_text=description or "",
+                details={
+                    "target_language": target_language,
+                    "error_code": "translation_failed",
+                },
+            ) from e
 
 
 def translate_game_description(

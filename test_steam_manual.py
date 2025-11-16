@@ -13,50 +13,64 @@ import asyncio
 import logging
 import sys
 from pathlib import Path
+from typing import List, Tuple, TypeVar
 
 import pytest
+
+from game_lingo.apis.steam_api import SteamAPI
+from game_lingo.exceptions import GameNotFoundError, RateLimitError
 
 # Añadir el directorio del proyecto al path
 project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
-from game_lingo.apis.steam_api import SteamAPI
-from game_lingo.exceptions import GameNotFoundError, RateLimitError
-
 # Configurar logging para pruebas
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Type aliases
+SteamGame = Tuple[int, str]
 
 
 # Fixture para la API de Steam
 @pytest.fixture
-def steam_api():
+def steam_api() -> SteamAPI:
     """Fixture que proporciona una instancia de SteamAPI."""
     return SteamAPI()
 
 
 # Juegos de prueba para diferentes escenarios
-TEST_GAMES = [
+TEST_GAMES: List[SteamGame] = [
     (620, "Portal 2"),
     (292030, "The Witcher 3: Wild Hunt"),
     (1174180, "Red Dead Redemption 2"),
 ]
 
 # Consultas de búsqueda de prueba
-TEST_SEARCH_QUERIES = ["Portal", "The Witcher 3", "Cyberpunk 2077", "Half-Life"]
+TEST_SEARCH_QUERIES: List[str] = [
+    "Portal",
+    "The Witcher 3",
+    "Cyberpunk 2077",
+    "Half-Life",
+]
+
+
+T = TypeVar("T")
 
 
 @pytest.mark.asyncio
-async def test_steam_search(steam_api):
+async def test_steam_search(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de juegos en Steam."""
     for query in TEST_SEARCH_QUERIES:
         results = await steam_api.search_game(query, language="spanish", max_results=3)
 
         # Verificar que los resultados son una lista
         assert isinstance(
-            results, list,
+            results,
+            list,
         ), f"Los resultados para '{query}' deberían ser una lista"
 
         # Verificar que hay al menos un resultado para consultas conocidas
@@ -68,19 +82,20 @@ async def test_steam_search(steam_api):
                 assert "id" in game, "Cada juego debe tener un ID"
                 assert "name" in game, "Cada juego debe tener un nombre"
                 assert isinstance(
-                    game["name"], str,
+                    game["name"],
+                    str,
                 ), "El nombre del juego debe ser una cadena"
 
 
 @pytest.mark.asyncio
-async def test_steam_search_nonexistent(steam_api):
+async def test_steam_search_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.search_game("juego_que_no_existe_12345", language="spanish")
 
 
 @pytest.mark.asyncio
-async def test_steam_details(steam_api):
+async def test_steam_details(steam_api: SteamAPI) -> None:
     """Prueba la obtención de detalles de juegos."""
     for app_id, expected_name in TEST_GAMES:
         details = await steam_api.get_game_details(app_id, language="spanish")
@@ -94,7 +109,8 @@ async def test_steam_details(steam_api):
         ), f"El nombre del juego no coincide para ID {app_id}"
         assert details.app_id == app_id, "El ID de la aplicación no coincide"
         assert isinstance(
-            details.platforms, list,
+            details.platforms,
+            list,
         ), "Las plataformas deben ser una lista"
         assert isinstance(details.genres, list), "Los géneros deben ser una lista"
 
@@ -105,19 +121,20 @@ async def test_steam_details(steam_api):
 
         # Verificar que la descripción existe y es una cadena
         assert details.short_description is None or isinstance(
-            details.short_description, str,
+            details.short_description,
+            str,
         ), "La descripción debe ser una cadena o None"
 
 
 @pytest.mark.asyncio
-async def test_steam_details_nonexistent(steam_api):
+async def test_steam_details_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la obtención de detalles de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.get_game_details(999999999, language="spanish")
 
 
 @pytest.mark.asyncio
-async def test_steam_find_by_name(steam_api):
+async def test_steam_find_by_name(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda completa por nombre."""
     test_games = ["Portal 2", "The Witcher 3", "Cyberpunk 2077"]
 
@@ -129,7 +146,8 @@ async def test_steam_find_by_name(steam_api):
         assert game_info.name, "El nombre del juego no debe estar vacío"
         assert game_info.steam_id, "El ID de Steam no debe estar vacío"
         assert isinstance(
-            game_info.platforms, list,
+            game_info.platforms,
+            list,
         ), "Las plataformas deben ser una lista"
         assert isinstance(game_info.genres, list), "Los géneros deben ser una lista"
 
@@ -140,14 +158,14 @@ async def test_steam_find_by_name(steam_api):
 
 
 @pytest.mark.asyncio
-async def test_steam_find_by_name_nonexistent(steam_api):
+async def test_steam_find_by_name_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.find_game_by_name("Juego Inexistente XYZ", language="spanish")
 
 
 @pytest.mark.asyncio
-async def test_steam_languages(steam_api):
+async def test_steam_languages(steam_api: SteamAPI) -> None:
     """Prueba diferentes idiomas."""
     test_text = "The quick brown fox jumps over the lazy dog"
     languages = ["spanish", "french", "german", "russian", "japanese"]
@@ -156,7 +174,9 @@ async def test_steam_languages(steam_api):
         try:
             # Buscar un juego popular para probar el idioma
             results = await steam_api.search_game(
-                "Portal", language=lang, max_results=1,
+                "Portal",
+                language=lang,
+                max_results=1,
             )
 
             # Verificar que se obtuvieron resultados
@@ -180,25 +200,26 @@ async def test_steam_languages(steam_api):
 
 # Tests para verificar el manejo de errores
 @pytest.mark.asyncio
-async def test_rate_limiting(steam_api):
+async def test_rate_limiting(steam_api: SteamAPI) -> None:
     """Prueba el manejo de límites de tasa."""
     # Hacer múltiples solicitudes rápidamente para probar el límite de tasa
-    with pytest.raises(RateLimitError):
-        for _ in range(20):  # Número suficientemente alto para alcanzar el límite
+    with pytest.raises(RateLimitError, match="Rate limit exceeded"):
+        # Número suficientemente alto para alcanzar el límite
+        for _ in range(20):
             await steam_api.search_game("test", language="spanish")
 
 
 @pytest.mark.asyncio
-async def test_invalid_language(steam_api):
+async def test_invalid_language(steam_api: SteamAPI) -> None:
     """Prueba con un idioma no válido."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="Unsupported language"):
         await steam_api.search_game("Portal", language="invalid_language")
 
 
 # Tests de integración
 @pytest.mark.integration
 @pytest.mark.asyncio
-async def test_integration_steam_workflow(steam_api):
+async def test_integration_steam_workflow(steam_api: SteamAPI) -> None:
     """Prueba un flujo completo de búsqueda y obtención de detalles."""
     # 1. Buscar un juego
     results = await steam_api.search_game("Portal 2", language="spanish")
@@ -226,7 +247,13 @@ async def test_integration_steam_workflow(steam_api):
     ), "Debería tener al menos una descripción"
 
 
-async def interactive_test():
+async def interactive_test() -> None:
+    """Prueba interactiva donde el usuario puede buscar juegos."""
+    print("\n" + "=" * 60)
+    print("PRUEBA INTERACTIVA")
+    print("=" * 60)
+    print("Escribe nombres de juegos para buscar en Steam.")
+    print("Escribe 'quit' para salir.")
     """Prueba interactiva donde el usuario puede buscar juegos."""
     print("\n" + "=" * 60)
     print("PRUEBA INTERACTIVA")
@@ -255,15 +282,30 @@ async def interactive_test():
                     print("\n✅ ENCONTRADO:")
                     print(f"📛 Nombre: {game_info.name}")
                     print(f"🆔 Steam ID: {game_info.steam_id}")
-                    print(
-                        f"🎯 Géneros: {', '.join(game_info.genres[:5]) if game_info.genres else 'N/A'}",
-                    )
-                    print(f"📅 Año: {game_info.release_year or 'N/A'}")
-                    print(f"⭐ Puntuación: {game_info.rating or 'N/A'}")
 
-                    if game_info.short_description_es:
+                    # Safe access to genres
+                    genres = getattr(game_info, "genres", None)
+                    genres_str = ", ".join(genres[:5]) if genres else "N/A"
+                    print(f"🎯 Géneros: {genres_str}")
+
+                    # Safe access to release date
+                    release_date = getattr(game_info, "release_date", None)
+                    if release_date and hasattr(release_date, "year"):
+                        print(f"📅 Año: {release_date.year}")
+                    else:
+                        print("📅 Año: N/A")
+
+                    # Safe access to rating
+                    rating = getattr(game_info, "rating", None)
+                    print(f"⭐ Puntuación: {rating or 'N/A'}")
+
+                    # Safe access to descriptions
+                    desc_es = getattr(game_info, "short_description_es", None)
+                    desc_en = getattr(game_info, "short_description_en", None)
+                    description = desc_es or desc_en
+                    if description:
                         print(
-                            f"📝 Descripción: {game_info.short_description_es[:300]}...",
+                            f"📝 Descripción: {description[:300]}{'...' if len(description) > 300 else ''}",
                         )
                 else:
                     print("❌ No se encontró el juego")
@@ -275,32 +317,35 @@ async def interactive_test():
                 print(f"❌ Error: {e}")
 
 
-async def main():
+async def main() -> None:
+    """Función principal que ejecuta todas las pruebas."""
+    print("🚀 INICIANDO PRUEBAS DE STEAM API")
+    print("Steam Store API es gratuita y no requiere API key")
+    print("Estas pruebas harán requests reales a Steam")
     """Función principal que ejecuta todas las pruebas."""
     print("🚀 INICIANDO PRUEBAS DE STEAM API")
     print("Steam Store API es gratuita y no requiere API key")
     print("Estas pruebas harán requests reales a Steam")
 
+    # Crear una instancia de SteamAPI para las pruebas
+    steam = SteamAPI()
+
     try:
         # Ejecutar pruebas automáticas
-        await test_steam_search()
-        await test_steam_details()
-        await test_steam_find_by_name()
-        await test_steam_languages()
+        await test_steam_search(steam)
+        await test_steam_search_nonexistent(steam)
+        await test_steam_details(steam)
+        await test_steam_details_nonexistent(steam)
+        await test_steam_find_by_name(steam)
+        await test_steam_find_by_name_nonexistent(steam)
+        await test_steam_languages(steam)
+        await test_rate_limiting(steam)
+        await test_invalid_language(steam)
+        await test_integration_steam_workflow(steam)
 
-        # Preguntar si quiere prueba interactiva
-        print("\n" + "=" * 60)
-        response = (
-            input("¿Quieres hacer una prueba interactiva? (s/n): ").strip().lower()
-        )
-        if response in ["s", "si", "sí", "y", "yes"]:
-            await interactive_test()
+        # Ejecutar prueba interactiva
+        await interactive_test()
 
-        print("\n✅ TODAS LAS PRUEBAS COMPLETADAS")
-        print("\n📋 RESUMEN:")
-        print("- Steam API funciona sin API key")
-        print("- Soporta búsqueda en español e inglés")
-        print("- Proporciona descripciones detalladas")
         print("- Incluye metadatos completos (géneros, plataformas, etc.)")
         print("- Maneja errores apropiadamente")
 
@@ -313,4 +358,11 @@ async def main():
 
 if __name__ == "__main__":
     # Ejecutar pruebas
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\n[!] Ejecución interrumpida por el usuario")
+        sys.exit(1)
+    except Exception as e:
+        print(f"\n[ERROR] Error en la ejecución: {e}")
+        sys.exit(1)

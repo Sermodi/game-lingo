@@ -9,7 +9,7 @@ Incluye tests para:
 - Conversión de datos
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import aiohttp
 import pytest
@@ -23,7 +23,7 @@ from game_lingo.exceptions import (
     RateLimitError,
     ValidationError,
 )
-from game_lingo.models import GameInfo, Platform
+from game_lingo.models import GameInfo
 
 
 class TestRAWGResponse:
@@ -90,7 +90,8 @@ class TestRAWGAPIConnector:
             mock_rate_limiter.wait_if_needed = AsyncMock()
 
             connector = RAWGAPIConnector(
-                api_key="test_api_key", rate_limiter=mock_rate_limiter
+                api_key="test_api_key",
+                rate_limiter=mock_rate_limiter,
             )
             connector.session = mock_session
             return connector
