@@ -52,7 +52,7 @@ def _get_project_meta() -> Dict[str, Any]:
     try:
         with open(pyproject_path, "rb") as f:
             pyproject = tomllib.load(f)
-        return cast(Dict[str, Any], pyproject.get("tool", {}).get("poetry", {}))
+        return cast("Dict[str, Any]", pyproject.get("tool", {}).get("poetry", {}))
     except Exception as e:
         print(f"Error al leer pyproject.toml: {e}", file=sys.stderr)
         return {}

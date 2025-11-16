@@ -78,7 +78,7 @@ class TestTranslationResult:
 class TestDeepLAPIConnector:
     """Tests para la clase DeepLAPIConnector."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def mock_settings(self):
         """Mock de configuraciones."""
         with patch("game_lingo.apis.deepl_api.settings") as mock:
@@ -91,7 +91,7 @@ class TestDeepLAPIConnector:
             mock.VERSION = "1.0.0"
             yield mock
 
-    @pytest.fixture()
+    @pytest.fixture
     def connector(self, mock_settings):
         """Fixture del conector DeepL."""
         with patch("game_lingo.apis.deepl_api.DeepLAPIConnector._create_session"):
@@ -332,11 +332,11 @@ class TestConvenienceFunctions:
         )
 
 
-@pytest.mark.integration()
+@pytest.mark.integration
 class TestDeepLAPIIntegration:
     """Tests de integración para DeepL API (requieren API key real)."""
 
-    @pytest.fixture()
+    @pytest.fixture
     def real_connector(self):
         """Conector real para tests de integración."""
         import os

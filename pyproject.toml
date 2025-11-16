@@ -79,6 +79,7 @@ ignore = [
     "E501",    # line-too-long (algunas líneas son difíciles de acortar)
     "UP035",   # deprecated-import (typing.Dict vs dict - no urgente)
     "UP006",   # non-pep585-annotation (Dict vs dict - no urgente)
+    "UP",
     "FBT001",  # boolean-positional-arg (común en APIs y Pydantic)
     "FBT002",  # boolean-default-arg (común en APIs y Pydantic)
     "FBT003",  # boolean-positional-value (común en llamadas)

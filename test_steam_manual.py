@@ -36,7 +36,7 @@ SteamGame = Tuple[int, str]
 
 
 # Fixture para la API de Steam
-@pytest.fixture()
+@pytest.fixture
 def steam_api() -> SteamAPI:
     """Fixture que proporciona una instancia de SteamAPI."""
     return SteamAPI()
@@ -61,7 +61,7 @@ TEST_SEARCH_QUERIES: List[str] = [
 T = TypeVar("T")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_search(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de juegos en Steam."""
     for query in TEST_SEARCH_QUERIES:
@@ -87,14 +87,14 @@ async def test_steam_search(steam_api: SteamAPI) -> None:
                 ), "El nombre del juego debe ser una cadena"
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_search_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.search_game("juego_que_no_existe_12345", language="spanish")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_details(steam_api: SteamAPI) -> None:
     """Prueba la obtención de detalles de juegos."""
     for app_id, expected_name in TEST_GAMES:
@@ -126,14 +126,14 @@ async def test_steam_details(steam_api: SteamAPI) -> None:
         ), "La descripción debe ser una cadena o None"
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_details_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la obtención de detalles de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.get_game_details(999999999, language="spanish")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_find_by_name(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda completa por nombre."""
     test_games = ["Portal 2", "The Witcher 3", "Cyberpunk 2077"]
@@ -157,14 +157,14 @@ async def test_steam_find_by_name(steam_api: SteamAPI) -> None:
         ), f"El juego {game_name} debe tener al menos una descripción (ES o EN)"
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_find_by_name_nonexistent(steam_api: SteamAPI) -> None:
     """Prueba la búsqueda de un juego que no existe."""
     with pytest.raises(GameNotFoundError):
         await steam_api.find_game_by_name("Juego Inexistente XYZ", language="spanish")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_steam_languages(steam_api: SteamAPI) -> None:
     """Prueba diferentes idiomas."""
     test_text = "The quick brown fox jumps over the lazy dog"
@@ -199,7 +199,7 @@ async def test_steam_languages(steam_api: SteamAPI) -> None:
 
 
 # Tests para verificar el manejo de errores
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_rate_limiting(steam_api: SteamAPI) -> None:
     """Prueba el manejo de límites de tasa."""
     # Hacer múltiples solicitudes rápidamente para probar el límite de tasa
@@ -209,7 +209,7 @@ async def test_rate_limiting(steam_api: SteamAPI) -> None:
             await steam_api.search_game("test", language="spanish")
 
 
-@pytest.mark.asyncio()
+@pytest.mark.asyncio
 async def test_invalid_language(steam_api: SteamAPI) -> None:
     """Prueba con un idioma no válido."""
     with pytest.raises(ValueError, match="Unsupported language"):
@@ -217,8 +217,8 @@ async def test_invalid_language(steam_api: SteamAPI) -> None:
 
 
 # Tests de integración
-@pytest.mark.integration()
-@pytest.mark.asyncio()
+@pytest.mark.integration
+@pytest.mark.asyncio
 async def test_integration_steam_workflow(steam_api: SteamAPI) -> None:
     """Prueba un flujo completo de búsqueda y obtención de detalles."""
     # 1. Buscar un juego

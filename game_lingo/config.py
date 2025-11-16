@@ -16,6 +16,8 @@ from pathlib import Path
 
 from decouple import config
 
+logger = logging.getLogger(__name__)
+
 # Configuración de rutas
 CONFIG_DIR = Path.home() / ".config" / "game_lingo"
 CONFIG_FILE = CONFIG_DIR / "config.ini"
@@ -270,13 +272,13 @@ class Settings:
                 self.RAWG_API_KEY,
             ],
         ):
-            logging.warning(
+            logger.warning(
                 "No API keys configured for game data sources. "
                 "Some functionality may be limited.",
             )
 
         if not any([self.DEEPL_API_KEY, self.GOOGLE_TRANSLATE_API_KEY]):
-            logging.warning(
+            logger.warning(
                 "No translation API keys configured. "
                 "Translation functionality will be disabled.",
             )
